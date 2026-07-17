@@ -15,7 +15,7 @@ export default function Landing() {
       setState({
         status: 'error',
         message:
-          'Supabase is not configured yet. Copy .env.example to .env.local and fill in your project URL and anon key.',
+          'Supabase is not configured yet. Copy .env.example to .env.local and fill in your project URL and publishable key.',
       })
       return
     }

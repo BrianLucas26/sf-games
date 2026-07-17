@@ -19,13 +19,13 @@ Players pick a game, create or join a lobby with a code/invite link, and play. E
 - **Generic layer** (this scaffold): `game_types`, `games`, `teams`, `players` — lobby creation, join codes, team assignment. Reusable across every game.
 - **Per-game layer** (built as each game ships): its own tables keyed off `games.id`, e.g. turf war's `zones`, `zone_state`, `zone_adjacency`, `challenge_deck`.
 - **Client-side extensibility seam**: [`src/lib/gameRegistry.ts`](src/lib/gameRegistry.ts). A game is a `GameModule` (lobby settings UI + board UI). The router/lobby code looks games up by slug and never imports a specific game's code directly — adding a game means writing `src/routes/games/<slug>/{Board,LobbySettings,register}.tsx` and importing `register` once.
-- **Trust boundary**: tables are `select`-only from the browser (see RLS policies in [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql)). All writes go through edge functions using the service role key, which is where atomic state transitions (claim races, veto windows, deck replenishment) live.
+- **Trust boundary**: tables are `select`-only from the browser (see RLS policies in [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql)). All writes go through edge functions using the secret key, which is where atomic state transitions (claim races, veto windows, deck replenishment) live.
 
 ## Getting started
 
 ```bash
 npm install
-cp .env.example .env.local   # fill in your Supabase project URL + anon key
+cp .env.example .env.local   # fill in your Supabase project URL + publishable key
 npm run dev
 ```
 
@@ -40,19 +40,20 @@ Visit `http://localhost:5173`. The landing page queries the `game_types` table �
    npx supabase link --project-ref <your-project-ref>
    npx supabase db push   # applies supabase/migrations
    ```
-3. Copy the project URL and anon key from **Project Settings → API** into `.env.local`.
+3. Copy the project URL and **publishable key** (not the secret key) from **Project Settings → API Keys** into `.env.local`. The publishable key is safe for the browser — it's the direct replacement for the old "anon" key, and RLS still governs what it can read/write. The secret key replaces the old "service_role" key and must only ever be used server-side (edge functions); never put it in a `VITE_`-prefixed variable, since Vite inlines those into the client bundle.
 4. (Optional, once you need trusted writes) deploy the example edge function to confirm the pipeline works end to end:
    ```bash
    npx supabase functions deploy hello-world
    ```
 5. Supabase free-tier projects pause after a week of inactivity — resume from the dashboard before a game day, or set up a low-frequency cron hitting the project to keep it warm.
+6. Optional: connect the GitHub repo under **Project Settings → Integrations → GitHub**, and enable migration deploys so `supabase/migrations/*.sql` applies automatically on push to `main`. Skip the "branching" / preview-database option — that's a staging-environment feature aimed at teams, not needed here and can incur cost beyond the free allowance.
 
 ### Cloudflare Pages setup
 
 1. Push this repo to GitHub.
 2. In the Cloudflare dashboard, create a Pages project connected to the repo.
 3. Build command: `npm run build`. Build output directory: `dist`.
-4. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` as Pages environment variables (same values as `.env.local`).
+4. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` as Pages environment variables (same values as `.env.local`).
 5. Attach your domain under the Pages project's custom domains tab.
 
 ## Project layout
