@@ -45,7 +45,7 @@ Visit `http://localhost:5173`. The landing page queries the `game_types` table �
    ```bash
    npx supabase functions deploy hello-world
    ```
-5. Supabase free-tier projects pause after a week of inactivity — resume from the dashboard before a game day, or set up a low-frequency cron hitting the project to keep it warm.
+5. Supabase free-tier projects pause after a week of inactivity — [`.github/workflows/keep-supabase-alive.yml`](.github/workflows/keep-supabase-alive.yml) pings the project daily via GitHub Actions to prevent that. Requires no setup beyond this repo being on GitHub with Actions enabled (the default).
 6. Optional: connect the GitHub repo under **Project Settings → Integrations → GitHub**, and enable migration deploys so `supabase/migrations/*.sql` applies automatically on push to `main`. Skip the "branching" / preview-database option — that's a staging-environment feature aimed at teams, not needed here and can incur cost beyond the free allowance.
 
 ### Cloudflare Pages setup

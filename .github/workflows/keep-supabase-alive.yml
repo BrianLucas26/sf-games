@@ -1,0 +1,19 @@
+name: Keep Supabase project awake
+
+# Supabase free-tier projects pause after 7 days with no API activity.
+# A daily read-only ping keeps this one active with a wide safety margin.
+# The URL and publishable key below are safe to commit -- the publishable
+# key is meant to be exposed to browsers and is scoped by RLS.
+on:
+  schedule:
+    - cron: '0 12 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST API
+        run: |
+          curl -sf "https://hhectckjwozmulhnrwdt.supabase.co/rest/v1/game_types?select=id&limit=1" \
+            -H "apikey: sb_publishable_YY2Gn6vEX_NyvS2gIYPcYQ_mf6A32Cy"
