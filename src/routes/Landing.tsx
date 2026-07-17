@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient'
 import type { GameTypeRow } from '@/types/database'
 
@@ -47,6 +48,21 @@ export default function Landing() {
       <p className="mt-2 text-gray-400">
         Pick a game, create a lobby, and share the invite code with your teams.
       </p>
+
+      <div className="mt-4 flex gap-3">
+        <Link
+          to="/create"
+          className="rounded-md bg-orange-600 px-4 py-2 text-sm font-medium hover:bg-orange-500"
+        >
+          Create a game
+        </Link>
+        <Link
+          to="/join"
+          className="rounded-md border border-gray-700 px-4 py-2 text-sm font-medium hover:border-gray-500"
+        >
+          Join a game
+        </Link>
+      </div>
 
       <div className="mt-8">
         {state.status === 'loading' && (

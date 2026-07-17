@@ -11,5 +11,11 @@ export interface GameModule {
   LobbySettings?: ComponentType<{ gameId: string }>
   /** Rendered once the game has started; the game's main play surface. */
   Board: ComponentType<{ gameId: string }>
-  defaultSettings: Record<string, unknown>
+  defaultSettings: object
+  /**
+   * Called when the host clicks "Start" in the lobby. Invokes whatever this
+   * game's own start edge function is (e.g. turf-war-start) -- the generic
+   * Lobby route never needs to know that function's name.
+   */
+  startGame?: (gameId: string) => Promise<void>
 }
