@@ -44,19 +44,20 @@ export function VetoBanner({ proposal, player, zones }: VetoBannerProps) {
   }
 
   return (
-    <div className="rounded-lg border border-yellow-800/50 bg-yellow-950/30 p-4 text-sm">
-      <p>
-        {targetZone?.region.name ?? 'A zone'} will be discarded in {secondsLeft}s.
+    <div className="rounded-xl border border-danger/40 bg-danger/[0.08] p-4 text-sm">
+      <p className="text-ink/90">
+        <span className="font-medium">{targetZone?.region.name ?? 'A zone'}</span> will be discarded in{' '}
+        <span className="font-display tabular-nums text-danger">{secondsLeft}s</span>
       </p>
       {isOpposingTeam && (
         <button
           onClick={handleVeto}
-          className="mt-2 rounded-md bg-yellow-700 px-3 py-1 text-xs font-medium hover:bg-yellow-600"
+          className="mt-3 rounded-md border border-danger/50 px-3 py-1.5 text-xs font-medium text-danger transition-colors hover:bg-danger/10"
         >
           Veto
         </button>
       )}
-      {error && <p className="mt-1 text-xs text-red-400">{error}</p>}
+      {error && <p className="mt-1 text-xs text-danger">{error}</p>}
     </div>
   )
 }

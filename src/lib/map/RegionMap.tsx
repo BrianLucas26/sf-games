@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import type { RegionRow } from '@/types/geo'
@@ -50,6 +50,26 @@ export function RegionMap({
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const onRegionClickRef = useRef(onRegionClick)
   onRegionClickRef.current = onRegionClick
+  const regionsRef = useRef(regions)
+  regionsRef.current = regions
+  const [mapLoaded, setMapLoaded] = useState(false)
+
+  // The actual SET of regions only changes once (at game start) -- zone
+  // status updates just replace the `regions` array reference every render
+  // without changing which regions exist. Keying the map-creation effect off
+  // this stable id list (instead of the array reference) is what stops the
+  // whole Mapbox instance -- source, layers, click handlers -- from being
+  // torn down and rebuilt on every realtime event, which was the cause of
+  // both the visible flicker and colors appearing to "not update" (they did
+  // update, then immediately got reset by the next recreation).
+  const regionIdsKey = useMemo(
+    () =>
+      regions
+        .map((r) => r.id)
+        .sort()
+        .join(','),
+    [regions],
+  )
 
   useEffect(() => {
     if (!containerRef.current || !mapboxToken) return
@@ -65,7 +85,7 @@ export function RegionMap({
     map.on('load', () => {
       map.addSource(SOURCE_ID, {
         type: 'geojson',
-        data: toFeatureCollection(regions),
+        data: toFeatureCollection(regionsRef.current),
       })
 
       map.addLayer({
@@ -73,8 +93,8 @@ export function RegionMap({
         type: 'fill',
         source: SOURCE_ID,
         paint: {
-          'fill-color': ['coalesce', ['feature-state', 'color'], '#4b5563'],
-          'fill-opacity': 0.6,
+          'fill-color': ['coalesce', ['feature-state', 'color'], '#33333d'],
+          'fill-opacity': ['coalesce', ['feature-state', 'opacity'], 0.35],
         },
       })
 
@@ -82,17 +102,18 @@ export function RegionMap({
         id: LINE_LAYER_ID,
         type: 'line',
         source: SOURCE_ID,
-        paint: { 'line-color': '#1f2937', 'line-width': 1 },
+        paint: { 'line-color': '#1c1c22', 'line-width': 1 },
       })
 
-      for (const region of regions) {
-        map.setFeatureState({ source: SOURCE_ID, id: region.id }, { color: getFillColor(region) })
+      for (const region of regionsRef.current) {
+        const [color, opacity] = parseColor(getFillColor(region))
+        map.setFeatureState({ source: SOURCE_ID, id: region.id }, { color, opacity })
       }
 
       map.on('click', FILL_LAYER_ID, (e) => {
         const feature = e.features?.[0]
         const regionId = feature?.properties?.regionId as string | undefined
-        const region = regions.find((r) => r.id === regionId)
+        const region = regionsRef.current.find((r) => r.id === regionId)
         if (region) onRegionClickRef.current?.(region)
       })
 
@@ -102,36 +123,63 @@ export function RegionMap({
       map.on('mouseleave', FILL_LAYER_ID, () => {
         map.getCanvas().style.cursor = ''
       })
+
+      setMapLoaded(true)
     })
 
     return () => {
       map.remove()
       mapRef.current = null
+      setMapLoaded(false)
     }
-    // Source/layers are set up once; region set changes are rare enough
-    // (game start) that recreating the map is acceptable.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [regions])
+  }, [regionIdsKey])
 
   // Recolor without touching Mapbox's load count -- feature-state updates
   // are free repaints, not new map loads, so this can run on every realtime event.
   useEffect(() => {
     const map = mapRef.current
-    if (!map) return
+    if (!map || !mapLoaded) return
     for (const region of regions) {
       if (map.getSource(SOURCE_ID)) {
-        map.setFeatureState({ source: SOURCE_ID, id: region.id }, { color: getFillColor(region) })
+        const [color, opacity] = parseColor(getFillColor(region))
+        map.setFeatureState({ source: SOURCE_ID, id: region.id }, { color, opacity })
       }
     }
-  }, [regions, getFillColor])
+  }, [regions, getFillColor, mapLoaded])
 
   if (!mapboxToken) {
     return (
-      <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-gray-800 p-8 text-center text-sm text-gray-500">
+      <div className="flex h-full items-center justify-center rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted">
         Map unavailable: set VITE_MAPBOX_TOKEN in .env.local to render the board.
       </div>
     )
   }
 
-  return <div ref={containerRef} className={className ?? 'h-full w-full'} />
+  return (
+    <div className={`relative overflow-hidden rounded-xl ${className ?? 'h-full w-full'}`}>
+      <div ref={containerRef} className="h-full w-full" />
+      {!mapLoaded && (
+        <div className="absolute inset-0 flex items-center justify-center bg-surface">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-accent" />
+        </div>
+      )}
+    </div>
+  )
+}
+
+// fill-color/opacity are stored as separate feature-state values so opacity
+// can vary per status (e.g. secret zones are the same team color as claimed
+// ones, just much fainter) without needing a distinct color per alpha level.
+// getFillColor returns a normal CSS color; rgba() alpha (if present) becomes
+// the opacity feature-state, otherwise a caller-appropriate default applies.
+function parseColor(cssColor: string): [string, number] {
+  const rgbaMatch = cssColor.match(/rgba?\(([^)]+)\)/)
+  if (rgbaMatch) {
+    const parts = rgbaMatch[1].split(',').map((p) => p.trim())
+    const [r, g, b] = parts
+    const a = parts[3] !== undefined ? Number(parts[3]) : 1
+    return [`rgb(${r} ${g} ${b})`, a]
+  }
+  return [cssColor, 0.55]
 }

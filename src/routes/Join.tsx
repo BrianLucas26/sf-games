@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Button } from '@/components/Button'
+import { Field, TextInput } from '@/components/Field'
 import { joinGame } from '@/lib/gameApi'
 
 export default function Join() {
@@ -25,33 +27,26 @@ export default function Join() {
   }
 
   return (
-    <div className="max-w-md space-y-4">
-      <h1 className="text-2xl font-bold">Join a game</h1>
-      <label className="block text-sm">
-        Join code
-        <input
+    <div className="max-w-md space-y-5">
+      <h1 className="text-2xl font-semibold tracking-tight text-ink">Join a game</h1>
+
+      <Field label="Join code">
+        <TextInput
           value={joinCode}
           onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-          className="mt-1 w-full rounded-md border border-gray-700 bg-gray-900 px-3 py-2 uppercase tracking-widest"
+          className="tracking-[0.2em] uppercase"
           placeholder="ABC123"
         />
-      </label>
-      <label className="block text-sm">
-        Your name
-        <input
-          value={displayName}
-          onChange={(e) => setDisplayName(e.target.value)}
-          className="mt-1 w-full rounded-md border border-gray-700 bg-gray-900 px-3 py-2"
-        />
-      </label>
-      <button
-        onClick={handleJoin}
-        disabled={busy || !joinCode.trim() || !displayName.trim()}
-        className="w-full rounded-md bg-orange-600 py-2 font-medium hover:bg-orange-500 disabled:opacity-50"
-      >
-        {busy ? 'Joining...' : 'Join lobby'}
-      </button>
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      </Field>
+
+      <Field label="Your name">
+        <TextInput value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Player" />
+      </Field>
+
+      <Button onClick={handleJoin} disabled={busy || !joinCode.trim() || !displayName.trim()} className="w-full">
+        {busy ? 'Joining…' : 'Join lobby'}
+      </Button>
+      {error && <p className="text-sm text-danger">{error}</p>}
     </div>
   )
 }

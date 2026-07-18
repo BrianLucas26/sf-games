@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Button } from '@/components/Button'
 import { supabase } from '@/lib/supabaseClient'
 import type { PlayerRow } from '@/types/database'
 import { claimZone } from '../api'
@@ -12,6 +13,13 @@ interface ZoneDetailPanelProps {
   verificationMode: TurfWarVerificationMode
   onClose: () => void
   onClaimed: (capture: TurfWarCaptureRow) => void
+}
+
+const STATUS_LABEL: Record<string, string> = {
+  locked: 'Not yet in play',
+  open: 'Open to claim',
+  claimed: 'Claimed',
+  discarded: 'Discarded',
 }
 
 export function ZoneDetailPanel({
@@ -64,39 +72,35 @@ export function ZoneDetailPanel({
   }
 
   return (
-    <div className="rounded-lg border border-gray-800 p-4">
+    <div className="rounded-xl border border-border bg-surface p-4">
       <div className="flex items-start justify-between">
-        <h3 className="font-semibold">{zone.region.name}</h3>
-        <button onClick={onClose} className="text-xs text-gray-500 hover:text-gray-300">
+        <h3 className="font-display font-medium text-ink">{zone.region.name}</h3>
+        <button onClick={onClose} className="text-xs text-faint transition-colors hover:text-muted">
           Close
         </button>
       </div>
-      <p className="mt-1 text-xs uppercase tracking-wide text-gray-500">{zone.status}</p>
-      {challenge && <p className="mt-3 text-sm text-gray-300">{challenge}</p>}
+      <p className="mt-1 text-xs tracking-wide text-muted">{STATUS_LABEL[zone.status] ?? zone.status}</p>
+      {challenge && <p className="mt-3 text-sm leading-relaxed text-ink/80">{challenge}</p>}
 
       {zone.status === 'open' && !player.team_id && (
-        <p className="mt-3 text-xs text-amber-400">Join a team before claiming a zone.</p>
+        <p className="mt-3 text-xs text-accent">Join a team before claiming a zone.</p>
       )}
 
       {claimable && (
-        <div className="mt-4 space-y-2">
+        <div className="mt-4 space-y-3">
           {verificationMode === 'gps_photo' && (
             <input
               type="file"
               accept="image/*"
               capture="environment"
               onChange={(e) => setPhotoFile(e.target.files?.[0] ?? null)}
-              className="block w-full text-xs text-gray-400"
+              className="block w-full text-xs text-muted file:mr-3 file:rounded-md file:border-0 file:bg-surface-hover file:px-3 file:py-1.5 file:text-xs file:text-ink"
             />
           )}
-          <button
-            onClick={handleClaim}
-            disabled={busy}
-            className="w-full rounded-md bg-orange-600 py-2 text-sm font-medium hover:bg-orange-500 disabled:opacity-50"
-          >
-            {busy ? 'Claiming...' : 'Claim this neighborhood'}
-          </button>
-          {error && <p className="text-xs text-red-400">{error}</p>}
+          <Button onClick={handleClaim} disabled={busy} className="w-full">
+            {busy ? 'Claiming…' : 'Claim this neighborhood'}
+          </Button>
+          {error && <p className="text-xs text-danger">{error}</p>}
         </div>
       )}
     </div>

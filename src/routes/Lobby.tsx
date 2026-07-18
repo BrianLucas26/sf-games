@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { Button } from '@/components/Button'
 import { supabase } from '@/lib/supabaseClient'
 import { useCurrentPlayer } from '@/hooks/useCurrentPlayer'
 import { getGameModule } from '@/lib/gameRegistry'
@@ -70,7 +71,7 @@ export default function Lobby() {
     if (game?.status === 'active') navigate(`/play/${gameId}`)
   }, [game?.status, gameId, navigate])
 
-  if (!game) return <p className="text-sm text-gray-500">Loading lobby...</p>
+  if (!game) return <p className="text-sm text-faint">Loading lobby…</p>
 
   const module = getGameModule(game.game_types.slug)
   const isHost = player?.is_host ?? false
@@ -122,34 +123,34 @@ export default function Lobby() {
   }
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-2xl space-y-7">
       <div>
-        <h1 className="text-2xl font-bold">{game.game_types.name} lobby</h1>
-        <p className="mt-1 text-sm text-gray-400">
-          Join code <span className="font-mono text-orange-400">{game.join_code}</span>
+        <h1 className="text-2xl font-semibold tracking-tight text-ink">{game.game_types.name} lobby</h1>
+        <p className="mt-2 text-sm text-muted">
+          Join code <span className="font-display tracking-wider text-accent">{game.join_code}</span>
         </p>
-        <p className="mt-1 break-all text-xs text-gray-500">{inviteLink}</p>
+        <p className="mt-1 truncate text-xs text-faint">{inviteLink}</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         {teams.map((team) => (
-          <div key={team.id} className="rounded-lg border border-gray-800 p-4">
+          <div key={team.id} className="rounded-xl border border-border bg-surface p-4">
             <div className="flex items-center justify-between">
-              <h2 className="font-semibold">{team.name}</h2>
+              <h2 className="font-display font-medium text-ink">{team.name}</h2>
               <button
                 onClick={() => handleSelectTeam(team.id)}
-                className="rounded-md border border-gray-700 px-2 py-1 text-xs hover:border-gray-500"
+                className="rounded-md border border-border-strong px-2.5 py-1 text-xs font-medium text-muted transition-colors hover:border-accent/50 hover:text-ink"
               >
                 Join
               </button>
             </div>
-            <ul className="mt-2 space-y-1 text-sm text-gray-400">
+            <ul className="mt-3 space-y-1 text-sm text-muted">
               {players
                 .filter((p) => p.team_id === team.id)
                 .map((p) => (
                   <li key={p.id}>
                     {p.display_name}
-                    {p.is_host ? ' (host)' : ''}
+                    {p.is_host ? <span className="text-faint"> · host</span> : null}
                   </li>
                 ))}
             </ul>
@@ -159,8 +160,8 @@ export default function Lobby() {
 
       {players.some((p) => !p.team_id) && (
         <div>
-          <h2 className="text-sm font-semibold text-gray-400">Unassigned</h2>
-          <ul className="mt-1 text-sm text-gray-500">
+          <h2 className="text-xs font-medium tracking-wide text-faint uppercase">Unassigned</h2>
+          <ul className="mt-2 space-y-1 text-sm text-muted">
             {players
               .filter((p) => !p.team_id)
               .map((p) => (
@@ -174,23 +175,15 @@ export default function Lobby() {
 
       {isHost && (
         <div className="flex gap-3">
-          <button
-            onClick={handleStart}
-            disabled={starting || cancelling}
-            className="flex-1 rounded-md bg-orange-600 py-2 font-medium hover:bg-orange-500 disabled:opacity-50"
-          >
-            {starting ? 'Starting...' : 'Start game'}
-          </button>
-          <button
-            onClick={handleCancel}
-            disabled={starting || cancelling}
-            className="rounded-md border border-red-900 px-4 py-2 text-sm font-medium text-red-400 hover:border-red-700 disabled:opacity-50"
-          >
-            {cancelling ? 'Cancelling...' : 'Cancel lobby'}
-          </button>
+          <Button onClick={handleStart} disabled={starting || cancelling} className="flex-1">
+            {starting ? 'Starting…' : 'Start game'}
+          </Button>
+          <Button variant="danger" onClick={handleCancel} disabled={starting || cancelling}>
+            {cancelling ? 'Cancelling…' : 'Cancel lobby'}
+          </Button>
         </div>
       )}
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      {error && <p className="text-sm text-danger">{error}</p>}
     </div>
   )
 }

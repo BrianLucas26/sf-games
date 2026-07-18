@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { buttonClasses } from '@/components/Button'
 import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient'
 import type { GameTypeRow } from '@/types/database'
 
@@ -44,39 +45,31 @@ export default function Landing() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold tracking-tight">Games</h1>
-      <p className="mt-2 text-gray-400">
+      <h1 className="text-3xl font-semibold tracking-tight text-ink">Games</h1>
+      <p className="mt-2 text-[15px] text-muted">
         Pick a game, create a lobby, and share the invite code with your teams.
       </p>
 
-      <div className="mt-4 flex gap-3">
-        <Link
-          to="/create"
-          className="rounded-md bg-orange-600 px-4 py-2 text-sm font-medium hover:bg-orange-500"
-        >
+      <div className="mt-6 flex gap-3">
+        <Link to="/create" className={buttonClasses('primary')}>
           Create a game
         </Link>
-        <Link
-          to="/join"
-          className="rounded-md border border-gray-700 px-4 py-2 text-sm font-medium hover:border-gray-500"
-        >
+        <Link to="/join" className={buttonClasses('secondary')}>
           Join a game
         </Link>
       </div>
 
-      <div className="mt-8">
-        {state.status === 'loading' && (
-          <p className="text-sm text-gray-500">Loading games…</p>
-        )}
+      <div className="mt-10">
+        {state.status === 'loading' && <p className="text-sm text-faint">Loading games…</p>}
 
         {state.status === 'error' && (
-          <div className="rounded-lg border border-amber-800/50 bg-amber-950/30 p-4 text-sm text-amber-200">
+          <div className="rounded-xl border border-accent/30 bg-accent/[0.06] p-4 text-sm text-ink/80">
             {state.message}
           </div>
         )}
 
         {state.status === 'ready' && state.gameTypes.length === 0 && (
-          <div className="rounded-lg border border-dashed border-gray-800 p-8 text-center text-gray-500">
+          <div className="rounded-xl border border-dashed border-border p-10 text-center text-sm text-faint">
             No games are live yet — check back soon.
           </div>
         )}
@@ -86,13 +79,11 @@ export default function Landing() {
             {state.gameTypes.map((gameType) => (
               <li
                 key={gameType.id}
-                className="rounded-lg border border-gray-800 p-5 hover:border-gray-700"
+                className="rounded-xl border border-border bg-surface p-5 transition-colors hover:border-border-strong"
               >
-                <h2 className="font-semibold">{gameType.name}</h2>
+                <h2 className="font-display text-base font-medium text-ink">{gameType.name}</h2>
                 {gameType.description && (
-                  <p className="mt-1 text-sm text-gray-400">
-                    {gameType.description}
-                  </p>
+                  <p className="mt-1.5 text-sm leading-relaxed text-muted">{gameType.description}</p>
                 )}
               </li>
             ))}

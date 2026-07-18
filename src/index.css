@@ -1,1 +1,37 @@
 @import "tailwindcss";
+
+@theme {
+  --color-canvas: #0d0d10;
+  --color-surface: #16161a;
+  --color-surface-hover: #1c1c21;
+  --color-border: #26262c;
+  --color-border-strong: #38383f;
+  --color-ink: #ececee;
+  --color-muted: #93939d;
+  --color-faint: #5c5c66;
+  --color-accent: #d97757;
+  --color-accent-hover: #e2896c;
+  --color-accent-ink: #2b1710;
+  --color-danger: #c2554f;
+  --color-danger-hover: #d16d67;
+  --color-team-a: #c85450;
+  --color-team-b: #4d84c4;
+
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Field, Select, TextInput } from '@/components/Field'
 import { supabase } from '@/lib/supabaseClient'
 import { updateGameSettings } from '@/lib/gameApi'
 import { DEFAULT_TURF_WAR_SETTINGS, type TurfWarSettings } from './types'
@@ -35,72 +36,62 @@ export function LobbySettings({ gameId }: { gameId: string }) {
   }
 
   return (
-    <div className="space-y-4 rounded-lg border border-gray-800 p-4">
-      <h3 className="font-semibold">Turf War settings</h3>
+    <div className="space-y-4 rounded-xl border border-border bg-surface p-4">
+      <h3 className="font-display font-medium text-ink">Turf War settings</h3>
 
-      <label className="block text-sm">
-        Open neighborhoods at once (X)
-        <input
+      <Field label="Open neighborhoods at once (X)">
+        <TextInput
           type="number"
           min={1}
           value={settings.open_slot_target}
           onChange={(e) => save({ ...settings, open_slot_target: Number(e.target.value) })}
-          className="mt-1 w-full rounded-md border border-gray-700 bg-gray-900 px-2 py-1"
         />
-      </label>
+      </Field>
 
-      <label className="block text-sm">
-        Secret neighborhood every (minutes, Y)
-        <input
+      <Field label="Secret neighborhood every (minutes, Y)">
+        <TextInput
           type="number"
           min={1}
           value={settings.secret_interval_minutes}
           onChange={(e) => save({ ...settings, secret_interval_minutes: Number(e.target.value) })}
-          className="mt-1 w-full rounded-md border border-gray-700 bg-gray-900 px-2 py-1"
         />
-      </label>
+      </Field>
 
-      <label className="block text-sm">
-        Game length (minutes)
-        <input
+      <Field label="Game length (minutes)">
+        <TextInput
           type="number"
           min={10}
           value={settings.duration_minutes}
           onChange={(e) => save({ ...settings, duration_minutes: Number(e.target.value) })}
-          className="mt-1 w-full rounded-md border border-gray-700 bg-gray-900 px-2 py-1"
         />
-      </label>
+      </Field>
 
-      <label className="block text-sm">
-        Claim verification
-        <select
+      <Field label="Claim verification">
+        <Select
           value={settings.verification_mode}
           onChange={(e) =>
             save({ ...settings, verification_mode: e.target.value as TurfWarSettings['verification_mode'] })
           }
-          className="mt-1 w-full rounded-md border border-gray-700 bg-gray-900 px-2 py-1"
         >
           <option value="none">None (honor system)</option>
           <option value="gps">GPS only</option>
           <option value="gps_photo">GPS + photo</option>
-        </select>
-      </label>
+        </Select>
+      </Field>
 
       {settings.verification_mode !== 'none' && (
-        <label className="block text-sm">
-          GPS threshold (meters)
-          <input
+        <Field label="GPS threshold (meters)">
+          <TextInput
             type="number"
             min={10}
             value={settings.gps_threshold_meters ?? 100}
             onChange={(e) => save({ ...settings, gps_threshold_meters: Number(e.target.value) })}
-            className="mt-1 w-full rounded-md border border-gray-700 bg-gray-900 px-2 py-1"
           />
-        </label>
+        </Field>
       )}
 
-      {saving && <p className="text-xs text-gray-500">Saving...</p>}
-      {error && <p className="text-xs text-red-400">{error}</p>}
+      {saving && <p className="text-xs text-faint">Saving…</p>}
+      {error && <p className="text-xs text-danger">{error}</p>}
     </div>
   )
 }

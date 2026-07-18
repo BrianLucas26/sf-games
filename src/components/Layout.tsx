@@ -2,18 +2,23 @@ import { Link, Outlet } from 'react-router-dom'
 
 export default function Layout() {
   return (
-    <div className="flex min-h-screen flex-col bg-gray-950 text-gray-100">
-      <header className="border-b border-gray-800">
+    <div className="flex min-h-screen flex-col bg-canvas text-ink">
+      <header className="border-b border-border">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-          <Link to="/" className="text-lg font-semibold tracking-tight">
-            SF Games
+          <Link to="/" className="flex items-center gap-2">
+            <span className="flex h-7 w-7 items-center justify-center rounded-md bg-accent text-[13px] font-semibold text-accent-ink">
+              SF
+            </span>
+            <span className="font-display text-[15px] font-medium tracking-tight text-ink">
+              Games
+            </span>
           </Link>
-          <nav className="text-sm text-gray-400">
+          <nav className="text-sm text-muted">
             <a
               href="https://github.com/"
               target="_blank"
               rel="noreferrer"
-              className="hover:text-gray-200"
+              className="transition-colors hover:text-ink"
             >
               GitHub
             </a>
@@ -21,11 +26,11 @@ export default function Layout() {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-10">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-12">
         <Outlet />
       </main>
 
-      <footer className="border-t border-gray-800 py-6 text-center text-xs text-gray-500">
+      <footer className="border-t border-border py-6 text-center text-xs text-faint">
         City-wide games around San Francisco.
       </footer>
     </div>

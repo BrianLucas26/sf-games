@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Button } from '@/components/Button'
+import { Field, TextInput } from '@/components/Field'
 import { supabase } from '@/lib/supabaseClient'
 import { createGame } from '@/lib/gameApi'
 import { listRegisteredGames } from '@/lib/gameRegistry'
@@ -47,45 +49,41 @@ export default function CreateGame() {
   }
 
   return (
-    <div className="max-w-md space-y-6">
-      <h1 className="text-2xl font-bold">Create a game</h1>
+    <div className="max-w-md space-y-7">
+      <h1 className="text-2xl font-semibold tracking-tight text-ink">Create a game</h1>
 
       <div className="space-y-2">
         {gameTypes.map((gt) => (
           <button
             key={gt.id}
             onClick={() => setSelectedSlug(gt.slug)}
-            className={`block w-full rounded-lg border p-4 text-left ${
-              selectedSlug === gt.slug ? 'border-orange-500' : 'border-gray-800 hover:border-gray-700'
+            className={`block w-full rounded-xl border p-4 text-left transition-colors ${
+              selectedSlug === gt.slug
+                ? 'border-accent bg-accent/[0.06]'
+                : 'border-border bg-surface hover:border-border-strong'
             }`}
           >
-            <p className="font-semibold">{gt.name}</p>
-            {gt.description && <p className="mt-1 text-sm text-gray-400">{gt.description}</p>}
+            <p className="font-display font-medium text-ink">{gt.name}</p>
+            {gt.description && <p className="mt-1 text-sm text-muted">{gt.description}</p>}
           </button>
         ))}
         {gameTypes.length === 0 && (
-          <p className="text-sm text-gray-500">No games are available to create yet.</p>
+          <p className="text-sm text-faint">No games are available to create yet.</p>
         )}
       </div>
 
-      <label className="block text-sm">
-        Your name
-        <input
+      <Field label="Your name">
+        <TextInput
           value={displayName}
           onChange={(e) => setDisplayName(e.target.value)}
-          className="mt-1 w-full rounded-md border border-gray-700 bg-gray-900 px-3 py-2"
           placeholder="Host"
         />
-      </label>
+      </Field>
 
-      <button
-        onClick={handleCreate}
-        disabled={busy || !selectedSlug || !displayName.trim()}
-        className="w-full rounded-md bg-orange-600 py-2 font-medium hover:bg-orange-500 disabled:opacity-50"
-      >
-        {busy ? 'Creating...' : 'Create lobby'}
-      </button>
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      <Button onClick={handleCreate} disabled={busy || !selectedSlug || !displayName.trim()} className="w-full">
+        {busy ? 'Creating…' : 'Create lobby'}
+      </Button>
+      {error && <p className="text-sm text-danger">{error}</p>}
     </div>
   )
 }

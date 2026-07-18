@@ -51,17 +51,17 @@ export function PhotoDownloadButton({ gameId, joinCode }: PhotoDownloadButtonPro
   if (!photoCount) return null
 
   return (
-    <div className="rounded-lg border border-gray-800 p-4">
+    <div className="rounded-xl border border-border bg-surface p-4">
       <button
         onClick={handleDownload}
         disabled={downloading}
-        className="w-full rounded-md bg-gray-800 py-3 text-sm font-medium hover:bg-gray-700 disabled:opacity-50"
+        className="w-full rounded-lg border border-border-strong py-3 text-sm font-medium text-ink transition-colors hover:border-accent/50 hover:bg-surface-hover disabled:opacity-50"
       >
         {downloading
-          ? 'Preparing your photos... this can take a moment on mobile data'
+          ? 'Preparing your photos… this can take a moment on mobile data'
           : `Download ${photoCount} photo${photoCount === 1 ? '' : 's'} (.zip)`}
       </button>
-      {error && <p className="mt-2 text-xs text-red-400">{error}</p>}
+      {error && <p className="mt-2 text-xs text-danger">{error}</p>}
     </div>
   )
 }

@@ -30,9 +30,9 @@ export function DiscardPicker({ gameId, capture, openZones, onDone }: DiscardPic
 
   if (proposedZoneId) {
     return (
-      <div className="rounded-lg border border-gray-800 p-4 text-sm text-gray-400">
-        Waiting to see if the other team vetoes your discard...
-        <button onClick={onDone} className="mt-2 block text-xs text-gray-500 hover:text-gray-300">
+      <div className="rounded-xl border border-border bg-surface p-4 text-sm text-muted">
+        Waiting to see if the other team vetoes your discard…
+        <button onClick={onDone} className="mt-2 block text-xs text-faint transition-colors hover:text-muted">
           Dismiss
         </button>
       </div>
@@ -40,22 +40,22 @@ export function DiscardPicker({ gameId, capture, openZones, onDone }: DiscardPic
   }
 
   return (
-    <div className="rounded-lg border border-gray-800 p-4">
-      <h3 className="font-semibold">You captured a zone! Discard one open zone.</h3>
-      <div className="mt-2 max-h-64 space-y-1 overflow-y-auto">
+    <div className="rounded-xl border border-accent/30 bg-accent/[0.06] p-4">
+      <h3 className="font-display font-medium text-ink">You captured a zone — discard one open zone</h3>
+      <div className="mt-3 max-h-64 space-y-1 overflow-y-auto">
         {openZones.map((z) => (
           <button
             key={z.id}
             disabled={busy}
             onClick={() => propose(z.id)}
-            className="block w-full rounded-md border border-gray-800 px-3 py-1.5 text-left text-sm hover:border-gray-600 disabled:opacity-50"
+            className="block w-full rounded-md border border-border-strong bg-surface px-3 py-1.5 text-left text-sm text-ink transition-colors hover:border-accent/50 disabled:opacity-50"
           >
             {z.region.name}
           </button>
         ))}
       </div>
-      {error && <p className="mt-2 text-xs text-red-400">{error}</p>}
-      <button onClick={onDone} className="mt-2 text-xs text-gray-500 hover:text-gray-300">
+      {error && <p className="mt-2 text-xs text-danger">{error}</p>}
+      <button onClick={onDone} className="mt-2 text-xs text-faint transition-colors hover:text-muted">
         Skip
       </button>
     </div>

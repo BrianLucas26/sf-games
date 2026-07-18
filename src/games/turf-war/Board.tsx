@@ -3,22 +3,24 @@ import { supabase } from '@/lib/supabaseClient'
 import { useCurrentPlayer } from '@/hooks/useCurrentPlayer'
 import type { TeamRow } from '@/types/database'
 import { DiscardPicker } from './components/DiscardPicker'
+import { OpenZonesList } from './components/OpenZonesList'
 import { PhotoDownloadButton } from './components/PhotoDownloadButton'
 import { Scoreboard } from './components/Scoreboard'
 import { SecretZonePanel } from './components/SecretZonePanel'
 import { VetoBanner } from './components/VetoBanner'
 import { ZoneDetailPanel } from './components/ZoneDetailPanel'
 import { ZoneMap } from './components/ZoneMap'
+import { useMySecretZones } from './hooks/useMySecretZones'
 import { useTurfWarRealtime, type ZoneWithRegion } from './hooks/useTurfWarRealtime'
 import { useTurfWarStandings } from './hooks/useTurfWarStandings'
+import { TEAM_COLORS } from './theme'
 import type { TurfWarCaptureRow, TurfWarVerificationMode } from './types'
-
-const TEAM_COLORS = ['#ef4444', '#3b82f6']
 
 export function Board({ gameId }: { gameId: string }) {
   const { player } = useCurrentPlayer(gameId)
   const { zones, proposals, loading } = useTurfWarRealtime(gameId)
   const standings = useTurfWarStandings(gameId, zones)
+  const mySecrets = useMySecretZones(gameId, player?.team_id ?? undefined)
   const [teams, setTeams] = useState<TeamRow[]>([])
   const [challengeByRegionId, setChallengeByRegionId] = useState<Record<string, string>>({})
   const [verificationMode, setVerificationMode] = useState<TurfWarVerificationMode>('none')
@@ -67,20 +69,33 @@ export function Board({ gameId }: { gameId: string }) {
     return map
   }, [teams])
 
+  const mySecretZoneIds = useMemo(() => new Set(mySecrets.map((s) => s.zone_id)), [mySecrets])
+  const myTeamColor = player?.team_id ? teamColorById[player.team_id] : undefined
+
   if (loading) {
-    return <p className="text-sm text-gray-500">Loading board...</p>
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-accent" />
+      </div>
+    )
   }
 
   return (
     <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
-      <ZoneMap zones={zones} teamColorById={teamColorById} onZoneClick={setSelectedZone} />
+      <ZoneMap
+        zones={zones}
+        teamColorById={teamColorById}
+        mySecretZoneIds={mySecretZoneIds}
+        myTeamColor={myTeamColor}
+        onZoneClick={setSelectedZone}
+      />
 
       <div className="space-y-4">
         <Scoreboard standings={standings} teams={teams} teamColorById={teamColorById} />
 
-        {player?.team_id && (
-          <SecretZonePanel gameId={gameId} teamId={player.team_id} zones={zones} />
-        )}
+        <OpenZonesList zones={zones} onSelect={setSelectedZone} />
+
+        {player?.team_id && <SecretZonePanel secrets={mySecrets} zones={zones} />}
 
         {joinCode && <PhotoDownloadButton gameId={gameId} joinCode={joinCode} />}
 

@@ -21,18 +21,16 @@ export default function Play() {
       .then(({ data }) => data && setGame(data as unknown as GameWithType))
   }, [gameId])
 
-  if (!game) return <p className="text-sm text-gray-500">Loading...</p>
+  if (!game) return <p className="text-sm text-faint">Loading…</p>
 
   const module = getGameModule(game.game_types.slug)
   if (!module) {
-    return (
-      <p className="text-sm text-red-400">No UI is registered for "{game.game_types.slug}" yet.</p>
-    )
+    return <p className="text-sm text-danger">No UI is registered for "{game.game_types.slug}" yet.</p>
   }
 
   return (
     <div>
-      <h1 className="mb-4 text-xl font-bold">{game.game_types.name}</h1>
+      <h1 className="mb-5 text-xl font-semibold tracking-tight text-ink">{game.game_types.name}</h1>
       <module.Board gameId={gameId} />
     </div>
   )
