@@ -21,6 +21,13 @@ Players pick a game, create or join a lobby with a code/invite link, and play. E
 - **Client-side extensibility seam**: [`src/lib/gameRegistry.ts`](src/lib/gameRegistry.ts). A game is a `GameModule` (lobby settings UI + board UI). The router/lobby code looks games up by slug and never imports a specific game's code directly — adding a game means writing `src/routes/games/<slug>/{Board,LobbySettings,register}.tsx` and importing `register` once.
 - **Trust boundary**: tables are `select`-only from the browser (see RLS policies in [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql)). All writes go through edge functions using the secret key, which is where atomic state transitions (claim races, veto windows, deck replenishment) live.
 
+## Data lifecycle
+
+Game instances are meant to be ephemeral, not permanent records:
+
+- **Host cancels a lobby** — a "Cancel lobby" button in the lobby screen (host-only, pre-start) deletes the `games` row immediately, cascading to its `teams`/`players`/instance-state rows. Other players' browsers notice via Realtime and get redirected home.
+- **Abandoned/stale games get swept automatically** — `cleanup_stale_games()` runs every 15 minutes via `pg_cron` (see `supabase/migrations/0013_lobby_cleanup.sql`): lobbies never started are removed after 3 hours, finished (`completed`/`cancelled`) games after 12 hours (long enough to see final standings), and any `active` game after 24 hours as a safety net in case a game type's own end-of-round logic didn't fire. None of this needs a host to still be around — closing the tab is enough.
+
 ## Getting started
 
 ```bash

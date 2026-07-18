@@ -38,3 +38,7 @@ export function updateGameSettings(params: { gameId: string; settings: object })
     settings: params.settings,
   })
 }
+
+export function cancelGame(params: { gameId: string }) {
+  return callFunction<{ ok: true }>('cancel-game', { game_id: params.gameId })
+}

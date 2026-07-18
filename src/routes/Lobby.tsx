@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '@/lib/supabaseClient'
 import { useCurrentPlayer } from '@/hooks/useCurrentPlayer'
 import { getGameModule } from '@/lib/gameRegistry'
-import { selectTeam } from '@/lib/gameApi'
+import { cancelGame, selectTeam } from '@/lib/gameApi'
 import type { GameRow, PlayerRow, TeamRow } from '@/types/database'
 
 interface GameWithType extends GameRow {
@@ -18,6 +18,7 @@ export default function Lobby() {
   const [teams, setTeams] = useState<TeamRow[]>([])
   const [players, setPlayers] = useState<PlayerRow[]>([])
   const [starting, setStarting] = useState(false)
+  const [cancelling, setCancelling] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const load = useCallback(() => {
@@ -25,8 +26,16 @@ export default function Lobby() {
       .from('games')
       .select('*, game_types(slug, name)')
       .eq('id', gameId)
-      .single()
-      .then(({ data }) => data && setGame(data as unknown as GameWithType))
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!data) {
+          // The host cancelled it (or the join code never resolved to a
+          // real game) -- nothing left to show, so leave the lobby.
+          navigate('/', { replace: true })
+          return
+        }
+        setGame(data as unknown as GameWithType)
+      })
     supabase
       .from('teams')
       .select('*')
@@ -39,7 +48,7 @@ export default function Lobby() {
       .eq('game_id', gameId)
       .order('joined_at')
       .then(({ data }) => data && setPlayers(data))
-  }, [gameId])
+  }, [gameId, navigate])
 
   useEffect(() => {
     load()
@@ -96,6 +105,22 @@ export default function Lobby() {
     }
   }
 
+  async function handleCancel() {
+    if (!confirm('Cancel this lobby? Everyone currently in it will be removed.')) return
+    setCancelling(true)
+    setError(null)
+    try {
+      await cancelGame({ gameId })
+      // Other players get here via their own realtime subscription noticing
+      // the game disappeared (handled in load() above); navigate ourselves
+      // right away rather than waiting on that round-trip.
+      navigate('/', { replace: true })
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to cancel lobby.')
+      setCancelling(false)
+    }
+  }
+
   return (
     <div className="max-w-2xl space-y-6">
       <div>
@@ -148,13 +173,22 @@ export default function Lobby() {
       {isHost && module?.LobbySettings && <module.LobbySettings gameId={gameId} />}
 
       {isHost && (
-        <button
-          onClick={handleStart}
-          disabled={starting}
-          className="w-full rounded-md bg-orange-600 py-2 font-medium hover:bg-orange-500 disabled:opacity-50"
-        >
-          {starting ? 'Starting...' : 'Start game'}
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={handleStart}
+            disabled={starting || cancelling}
+            className="flex-1 rounded-md bg-orange-600 py-2 font-medium hover:bg-orange-500 disabled:opacity-50"
+          >
+            {starting ? 'Starting...' : 'Start game'}
+          </button>
+          <button
+            onClick={handleCancel}
+            disabled={starting || cancelling}
+            className="rounded-md border border-red-900 px-4 py-2 text-sm font-medium text-red-400 hover:border-red-700 disabled:opacity-50"
+          >
+            {cancelling ? 'Cancelling...' : 'Cancel lobby'}
+          </button>
+        </div>
       )}
       {error && <p className="text-sm text-red-400">{error}</p>}
     </div>
