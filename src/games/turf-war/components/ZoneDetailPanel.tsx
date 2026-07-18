@@ -11,6 +11,7 @@ interface ZoneDetailPanelProps {
   challenge?: string
   player: PlayerRow
   verificationMode: TurfWarVerificationMode
+  isMySecretZone: boolean
   onClose: () => void
   onClaimed: (capture: TurfWarCaptureRow) => void
 }
@@ -27,6 +28,7 @@ export function ZoneDetailPanel({
   challenge,
   player,
   verificationMode,
+  isMySecretZone,
   onClose,
   onClaimed,
 }: ZoneDetailPanelProps) {
@@ -34,7 +36,12 @@ export function ZoneDetailPanel({
   const [error, setError] = useState<string | null>(null)
   const [photoFile, setPhotoFile] = useState<File | null>(null)
 
-  const claimable = zone.status === 'open' && Boolean(player.team_id)
+  // A secret zone stays 'locked' publicly by design (that's the whole
+  // mechanism keeping it hidden from the other team) -- claim-zone's backend
+  // already accepts it via the caller's turf_war_secret_zones row, this is
+  // just the UI catching up to that.
+  const claimable =
+    (zone.status === 'open' || (zone.status === 'locked' && isMySecretZone)) && Boolean(player.team_id)
 
   async function handleClaim() {
     setBusy(true)
@@ -79,10 +86,12 @@ export function ZoneDetailPanel({
           Close
         </button>
       </div>
-      <p className="mt-1 text-xs tracking-wide text-muted">{STATUS_LABEL[zone.status] ?? zone.status}</p>
+      <p className="mt-1 text-xs tracking-wide text-muted">
+        {isMySecretZone && zone.status === 'locked' ? 'Your secret target' : (STATUS_LABEL[zone.status] ?? zone.status)}
+      </p>
       {challenge && <p className="mt-3 text-sm leading-relaxed text-ink/80">{challenge}</p>}
 
-      {zone.status === 'open' && !player.team_id && (
+      {(zone.status === 'open' || isMySecretZone) && !player.team_id && (
         <p className="mt-3 text-xs text-accent">Join a team before claiming a zone.</p>
       )}
 

@@ -95,7 +95,9 @@ export function Board({ gameId }: { gameId: string }) {
 
         <OpenZonesList zones={zones} onSelect={setSelectedZone} />
 
-        {player?.team_id && <SecretZonePanel secrets={mySecrets} zones={zones} />}
+        {player?.team_id && (
+          <SecretZonePanel secrets={mySecrets} zones={zones} onSelect={setSelectedZone} />
+        )}
 
         {joinCode && <PhotoDownloadButton gameId={gameId} joinCode={joinCode} />}
 
@@ -105,6 +107,7 @@ export function Board({ gameId }: { gameId: string }) {
             challenge={challengeByRegionId[selectedZone.region.id]}
             player={player}
             verificationMode={verificationMode}
+            isMySecretZone={mySecretZoneIds.has(selectedZone.id)}
             onClose={() => setSelectedZone(null)}
             onClaimed={(capture) => {
               setPendingCapture(capture)
