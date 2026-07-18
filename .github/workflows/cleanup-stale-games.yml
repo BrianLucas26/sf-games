@@ -1,0 +1,26 @@
+name: Clean up stale games
+
+# Triggers the cleanup-games edge function on a schedule -- it deletes
+# abandoned lobbies, finished games (after players have had a chance to
+# download their photos), and any stuck active game, along with their
+# Storage photos. Requires a CLEANUP_SECRET repository secret matching the
+# one set on the Supabase project (`npx supabase secrets set CLEANUP_SECRET=...`).
+# This is the primary cleanup path; supabase/migrations/0015_cleanup_games_edge.sql
+# schedules a much-less-frequent pg_cron fallback in case this stops running.
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch: {}
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call cleanup-games edge function
+        run: |
+          curl -sf -X POST "https://hhectckjwozmulhnrwdt.supabase.co/functions/v1/cleanup-games" \
+            -H "apikey: sb_publishable_YY2Gn6vEX_NyvS2gIYPcYQ_mf6A32Cy" \
+            -H "Authorization: Bearer sb_publishable_YY2Gn6vEX_NyvS2gIYPcYQ_mf6A32Cy" \
+            -H "X-Cleanup-Secret: ${{ secrets.CLEANUP_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d '{}'

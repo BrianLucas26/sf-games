@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabaseClient'
 import { useCurrentPlayer } from '@/hooks/useCurrentPlayer'
 import type { TeamRow } from '@/types/database'
 import { DiscardPicker } from './components/DiscardPicker'
+import { PhotoDownloadButton } from './components/PhotoDownloadButton'
 import { Scoreboard } from './components/Scoreboard'
 import { SecretZonePanel } from './components/SecretZonePanel'
 import { VetoBanner } from './components/VetoBanner'
@@ -21,10 +22,18 @@ export function Board({ gameId }: { gameId: string }) {
   const [teams, setTeams] = useState<TeamRow[]>([])
   const [challengeByRegionId, setChallengeByRegionId] = useState<Record<string, string>>({})
   const [verificationMode, setVerificationMode] = useState<TurfWarVerificationMode>('none')
+  const [joinCode, setJoinCode] = useState<string | null>(null)
   const [selectedZone, setSelectedZone] = useState<ZoneWithRegion | null>(null)
   const [pendingCapture, setPendingCapture] = useState<TurfWarCaptureRow | null>(null)
 
   useEffect(() => {
+    supabase
+      .from('games')
+      .select('join_code')
+      .eq('id', gameId)
+      .single()
+      .then(({ data }) => data && setJoinCode(data.join_code))
+
     supabase
       .from('teams')
       .select('*')
@@ -72,6 +81,8 @@ export function Board({ gameId }: { gameId: string }) {
         {player?.team_id && (
           <SecretZonePanel gameId={gameId} teamId={player.team_id} zones={zones} />
         )}
+
+        {joinCode && <PhotoDownloadButton gameId={gameId} joinCode={joinCode} />}
 
         {selectedZone && player && (
           <ZoneDetailPanel

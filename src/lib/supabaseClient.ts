@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabasePublishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
+export const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+export const supabasePublishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
 
 // Games run fine as an anonymous/read-only experience until a lobby is joined,
 // so we allow the app to boot without env vars set and surface the gap in the UI
