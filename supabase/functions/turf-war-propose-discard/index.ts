@@ -63,10 +63,13 @@ Deno.serve(async (req) => {
 
     const { data: siblingProposals } = await admin
       .from('turf_war_discard_proposals')
-      .select('id, status')
+      .select('id, status, target_zone_id')
       .eq('capture_id', capture_id)
     if ((siblingProposals ?? []).some((p) => p.status === 'pending')) {
       return json({ error: 'A discard proposal is already pending for this capture.' }, 400)
+    }
+    if ((siblingProposals ?? []).some((p) => p.status === 'vetoed' && p.target_zone_id === target_zone_id)) {
+      return json({ error: 'That zone was already vetoed for this capture -- pick a different one.' }, 400)
     }
     const vetoAlreadySpent = (siblingProposals ?? []).some((p) => p.status === 'vetoed')
 

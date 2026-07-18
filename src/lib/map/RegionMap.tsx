@@ -38,6 +38,14 @@ function toFeatureCollection(regions: RegionRow[]): GeoJSON.FeatureCollection {
   }
 }
 
+function paintAll(map: mapboxgl.Map, regions: RegionRow[], getFillColor: (region: RegionRow) => string) {
+  if (!map.getSource(SOURCE_ID)) return
+  for (const region of regions) {
+    const [color, opacity] = parseColor(getFillColor(region))
+    map.setFeatureState({ source: SOURCE_ID, id: region.id }, { color, opacity })
+  }
+}
+
 export function RegionMap({
   regions,
   getFillColor,
@@ -52,6 +60,14 @@ export function RegionMap({
   onRegionClickRef.current = onRegionClick
   const regionsRef = useRef(regions)
   regionsRef.current = regions
+  // getFillColor is a brand-new function every parent render, and Mapbox's
+  // 'load' event fires asynchronously -- whenever it actually fires, it must
+  // use whichever getFillColor is current AT THAT MOMENT, not whatever was
+  // captured when the effect first ran (which could predate teams/secrets
+  // finishing their own async fetches, permanently painting everything as
+  // if no data existed yet). A ref sidesteps the closure entirely.
+  const getFillColorRef = useRef(getFillColor)
+  getFillColorRef.current = getFillColor
   const [mapLoaded, setMapLoaded] = useState(false)
 
   // The actual SET of regions only changes once (at game start) -- zone
@@ -105,10 +121,7 @@ export function RegionMap({
         paint: { 'line-color': '#1c1c22', 'line-width': 1 },
       })
 
-      for (const region of regionsRef.current) {
-        const [color, opacity] = parseColor(getFillColor(region))
-        map.setFeatureState({ source: SOURCE_ID, id: region.id }, { color, opacity })
-      }
+      paintAll(map, regionsRef.current, getFillColorRef.current)
 
       map.on('click', FILL_LAYER_ID, (e) => {
         const feature = e.features?.[0]
@@ -125,6 +138,12 @@ export function RegionMap({
       })
 
       setMapLoaded(true)
+      // One more pass shortly after 'load': React may have already
+      // re-rendered several times with fresher data (teams, secrets) while
+      // Mapbox was still loading tiles/style, and this guarantees the very
+      // latest getFillColor gets applied at least once even if no further
+      // realtime event happens to trigger a recolor afterward.
+      paintAll(map, regionsRef.current, getFillColorRef.current)
     })
 
     return () => {
@@ -136,16 +155,14 @@ export function RegionMap({
   }, [regionIdsKey])
 
   // Recolor without touching Mapbox's load count -- feature-state updates
-  // are free repaints, not new map loads, so this can run on every realtime event.
+  // are free repaints, not new map loads, so this can run on every realtime
+  // event. Guards on the source existing (not just `mapLoaded`) since that's
+  // the thing that actually matters and avoids any ordering assumption
+  // between this effect and the 'load' handler above.
   useEffect(() => {
     const map = mapRef.current
-    if (!map || !mapLoaded) return
-    for (const region of regions) {
-      if (map.getSource(SOURCE_ID)) {
-        const [color, opacity] = parseColor(getFillColor(region))
-        map.setFeatureState({ source: SOURCE_ID, id: region.id }, { color, opacity })
-      }
-    }
+    if (!map) return
+    paintAll(map, regions, getFillColor)
   }, [regions, getFillColor, mapLoaded])
 
   if (!mapboxToken) {
