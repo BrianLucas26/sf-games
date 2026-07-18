@@ -102,6 +102,15 @@ export function RegionMap({
       map.addSource(SOURCE_ID, {
         type: 'geojson',
         data: toFeatureCollection(regionsRef.current),
+        // The top-level GeoJSON `id` (a UUID string) wasn't reliably coming
+        // back from queryRenderedFeatures/click events -- promoteId is
+        // Mapbox's documented mechanism for exactly this case (a
+        // non-numeric custom identifier): it tells the source to use this
+        // properties field as the feature id for feature-state purposes
+        // instead of relying on the top-level `id`, which is what actually
+        // made setFeatureState/getFeatureState and the paint expression
+        // agree on which feature is which.
+        promoteId: 'regionId',
       })
 
       map.addLayer({
@@ -190,13 +199,23 @@ export function RegionMap({
 // ones, just much fainter) without needing a distinct color per alpha level.
 // getFillColor returns a normal CSS color; rgba() alpha (if present) becomes
 // the opacity feature-state, otherwise a caller-appropriate default applies.
+//
+// The color is re-emitted in classic comma-separated `rgb(r, g, b)` form
+// (not the space-separated `rgb(r g b)` CSS Color 4 syntax) because
+// Mapbox GL JS's internal color parser doesn't accept the newer syntax --
+// it fails silently, so `['feature-state', 'color']` evaluates to
+// null/invalid and the `coalesce` in the fill-color paint property falls
+// through to its default every time, which looks exactly like nothing is
+// colored at all despite the feature-state being set correctly (confirmed
+// via getFeatureState -- the bug was in what Mapbox's *renderer* could
+// parse, not in whether the state was stored).
 function parseColor(cssColor: string): [string, number] {
   const rgbaMatch = cssColor.match(/rgba?\(([^)]+)\)/)
   if (rgbaMatch) {
     const parts = rgbaMatch[1].split(',').map((p) => p.trim())
     const [r, g, b] = parts
     const a = parts[3] !== undefined ? Number(parts[3]) : 1
-    return [`rgb(${r} ${g} ${b})`, a]
+    return [`rgb(${r}, ${g}, ${b})`, a]
   }
   return [cssColor, 0.55]
 }
