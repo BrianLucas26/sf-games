@@ -153,14 +153,6 @@ async function main() {
     lines.push('')
   }
 
-  lines.push("insert into turf_war_challenges (region_id, prompt)")
-  lines.push("select r.id, 'PLACEHOLDER: take a selfie somewhere in ' || r.name || '.'")
-  lines.push('from map_regions r')
-  lines.push('join map_region_sets rs on rs.id = r.region_set_id')
-  lines.push(`where rs.slug = ${sqlString(regionSetSlug)}`)
-  lines.push('on conflict (region_id) do nothing;')
-  lines.push('')
-
   writeFileSync(output, lines.join('\n'))
   console.log(`Wrote ${output}`)
 }

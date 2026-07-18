@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { useCurrentPlayer } from '@/hooks/useCurrentPlayer'
 import type { TeamRow } from '@/types/database'
+import { TURF_WAR_CHALLENGES } from '../../../challenges/turf-war-challenges'
 import { DiscardPicker } from './components/DiscardPicker'
 import { OpenZonesList } from './components/OpenZonesList'
 import { PhotoDownloadButton } from './components/PhotoDownloadButton'
@@ -22,7 +23,6 @@ export function Board({ gameId }: { gameId: string }) {
   const standings = useTurfWarStandings(gameId, zones)
   const mySecrets = useMySecretZones(gameId, player?.team_id ?? undefined)
   const [teams, setTeams] = useState<TeamRow[]>([])
-  const [challengeByRegionId, setChallengeByRegionId] = useState<Record<string, string>>({})
   const [verificationMode, setVerificationMode] = useState<TurfWarVerificationMode>('none')
   const [joinCode, setJoinCode] = useState<string | null>(null)
   const [selectedZone, setSelectedZone] = useState<ZoneWithRegion | null>(null)
@@ -42,16 +42,6 @@ export function Board({ gameId }: { gameId: string }) {
       .eq('game_id', gameId)
       .order('created_at')
       .then(({ data }) => data && setTeams(data))
-
-    supabase
-      .from('turf_war_challenges')
-      .select('*')
-      .then(({ data }) => {
-        if (!data) return
-        const map: Record<string, string> = {}
-        for (const row of data) map[row.region_id] = row.prompt
-        setChallengeByRegionId(map)
-      })
 
     supabase
       .from('turf_war_game_state')
@@ -104,7 +94,7 @@ export function Board({ gameId }: { gameId: string }) {
         {selectedZone && player && (
           <ZoneDetailPanel
             zone={selectedZone}
-            challenge={challengeByRegionId[selectedZone.region.id]}
+            challenge={TURF_WAR_CHALLENGES[selectedZone.region.slug]}
             player={player}
             verificationMode={verificationMode}
             isMySecretZone={mySecretZoneIds.has(selectedZone.id)}

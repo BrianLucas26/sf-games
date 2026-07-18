@@ -2,6 +2,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 import { json } from '../_shared/response.ts'
 import { createServiceRoleClient } from '../_shared/supabaseAdmin.ts'
 import { getRequestUser } from '../_shared/getRequestUser.ts'
+import { LOCKOUT_CHALLENGES } from '../../../challenges/lockout-challenges.ts'
 
 interface LockoutSettings {
   board_size: 3 | 4 | 5
@@ -68,23 +69,18 @@ Deno.serve(async (req) => {
 
     const cellCount = settings.board_size * settings.board_size
 
-    const { data: challenges, error: challengesError } = await admin
-      .from('lockout_challenges')
-      .select('id')
-      .eq('is_active', true)
-    if (challengesError) return json({ error: challengesError.message }, 500)
-    if (!challenges || challenges.length < cellCount) {
+    if (LOCKOUT_CHALLENGES.length < cellCount) {
       return json(
-        { error: `Not enough active challenges (${challenges?.length ?? 0}) for a ${settings.board_size}x${settings.board_size} board (${cellCount} needed).` },
+        { error: `Not enough challenges (${LOCKOUT_CHALLENGES.length}) for a ${settings.board_size}x${settings.board_size} board (${cellCount} needed).` },
         500,
       )
     }
 
-    const selected = shuffle(challenges).slice(0, cellCount)
-    const cellRows = selected.map((challenge, position) => ({
+    const selected = shuffle(LOCKOUT_CHALLENGES).slice(0, cellCount)
+    const cellRows = selected.map((prompt, position) => ({
       game_id,
       position,
-      challenge_id: challenge.id,
+      prompt,
     }))
 
     const { error: insertCellsError } = await admin.from('lockout_cells').insert(cellRows)

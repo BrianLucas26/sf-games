@@ -24,7 +24,6 @@ export function Board({ gameId }: { gameId: string }) {
   const { player } = useCurrentPlayer(gameId)
   const { cells, gameState, gameStatus, loading } = useLockoutRealtime(gameId)
   const [teams, setTeams] = useState<TeamRow[]>([])
-  const [challengeById, setChallengeById] = useState<Record<string, string>>({})
   const [selectedCell, setSelectedCell] = useState<LockoutCellRow | null>(null)
   const [secondsLeft, setSecondsLeft] = useState(0)
   const resolvedOnceRef = useRef(false)
@@ -36,16 +35,6 @@ export function Board({ gameId }: { gameId: string }) {
       .eq('game_id', gameId)
       .order('created_at')
       .then(({ data }) => data && setTeams(data))
-
-    supabase
-      .from('lockout_challenges')
-      .select('*')
-      .then(({ data }) => {
-        if (!data) return
-        const map: Record<string, string> = {}
-        for (const row of data) map[row.id] = row.prompt
-        setChallengeById(map)
-      })
   }, [gameId])
 
   useEffect(() => {
@@ -120,7 +109,7 @@ export function Board({ gameId }: { gameId: string }) {
           <LockoutCellDetail
             gameId={gameId}
             cell={liveSelectedCell}
-            challenge={challengeById[liveSelectedCell.challenge_id]}
+            challenge={liveSelectedCell.prompt}
             player={player}
             teams={teams}
             gameActive={gameStatus === 'active'}

@@ -16,10 +16,28 @@ Players pick a game, create or join a lobby with a code/invite link, and play. E
 
 ## Architecture
 
-- **Generic layer** (this scaffold): `game_types`, `games`, `teams`, `players` — lobby creation, join codes, team assignment. Reusable across every game.
-- **Per-game layer** (built as each game ships): its own tables keyed off `games.id`, e.g. turf war's `zones`, `zone_state`, `zone_adjacency`, `challenge_deck`.
-- **Client-side extensibility seam**: [`src/lib/gameRegistry.ts`](src/lib/gameRegistry.ts). A game is a `GameModule` (lobby settings UI + board UI). The router/lobby code looks games up by slug and never imports a specific game's code directly — adding a game means writing `src/routes/games/<slug>/{Board,LobbySettings,register}.tsx` and importing `register` once.
-- **Trust boundary**: tables are `select`-only from the browser (see RLS policies in [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql)). All writes go through edge functions using the secret key, which is where atomic state transitions (claim races, veto windows, deck replenishment) live.
+- **Generic layer**: `game_types`, `games`, `teams`, `players` — lobby creation, join codes, team assignment. Reusable across every game.
+- **Per-game layer** (built as each game ships): its own tables keyed off `games.id`, e.g. Turf War's `turf_war_zones`, `turf_war_captures`, `turf_war_discard_proposals`, `turf_war_secret_zones`, `turf_war_game_state`; Lockout's `lockout_cells`, `lockout_game_state`. Static content (challenge text) is *not* one of these tables — see [Challenges](#challenges) below.
+- **Client-side extensibility seam**: [`src/lib/gameRegistry.ts`](src/lib/gameRegistry.ts). A game is a `GameModule` (lobby settings UI + board UI). The router/lobby code looks games up by slug and never imports a specific game's code directly — adding a game means writing `src/games/<slug>/{Board,LobbySettings,register}.tsx` and importing `register` once from `src/App.tsx`.
+- **Trust boundary**: tables are `select`-only from the browser (see RLS policies in [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql)). All writes go through edge functions using the secret key, which is where atomic state transitions (claim races, veto windows, zone replenishment) live.
+
+## Challenges
+
+Static reference content that's never mutated at runtime — challenge/prompt
+banks today, anything similar for future games — lives in git under
+[`challenges/`](challenges), not the database: `challenges/turf-war-challenges.ts`
+(keyed by neighborhood slug) and `challenges/lockout-challenges.ts` (a flat
+pool Lockout samples from at game start). Edit the file and push to `main`;
+that's the entire deploy step:
+
+- The frontend imports these files directly into its build, so Turf War's
+  challenge text goes live the moment Cloudflare Pages finishes its normal
+  auto-deploy — no extra step.
+- `lockout-start` (an edge function) also imports `challenges/lockout-challenges.ts`
+  directly, but edge functions only pick up code changes when explicitly
+  redeployed. [`.github/workflows/deploy-functions.yml`](.github/workflows/deploy-functions.yml)
+  handles that automatically on every push touching `supabase/functions/**`
+  or `challenges/**` — see the `SUPABASE_ACCESS_TOKEN` setup step below.
 
 ## Data lifecycle
 
@@ -55,6 +73,7 @@ Visit `http://localhost:5173`. The landing page queries the `game_types` table �
    ```
 5. Supabase free-tier projects pause after a week of inactivity — [`.github/workflows/keep-supabase-alive.yml`](.github/workflows/keep-supabase-alive.yml) pings the project daily via GitHub Actions to prevent that. Requires no setup beyond this repo being on GitHub with Actions enabled (the default).
 6. Optional: connect the GitHub repo under **Project Settings → Integrations → GitHub**, and enable migration deploys so `supabase/migrations/*.sql` applies automatically on push to `main`. Skip the "branching" / preview-database option — that's a staging-environment feature aimed at teams, not needed here and can incur cost beyond the free allowance.
+7. For edge functions to auto-deploy on push (see [Challenges](#challenges) above), generate a personal access token at [supabase.com/dashboard/account/tokens](https://supabase.com/dashboard/account/tokens) and add it as a GitHub repository secret named `SUPABASE_ACCESS_TOKEN` (Settings → Secrets and variables → Actions) — same one-time-setup pattern as `CLEANUP_SECRET` below.
 
 ### Cloudflare Pages setup
 
@@ -67,22 +86,24 @@ Visit `http://localhost:5173`. The landing page queries the `game_types` table �
 ## Project layout
 
 ```
+challenges/                     git-sourced challenge/prompt content, per game -- see Challenges above
 src/
-  components/Layout.tsx     shared header/footer shell
-  routes/                   pages (Landing today; games/<slug>/ later)
-  lib/supabaseClient.ts     Supabase client, safe to import even if unconfigured
-  lib/gameRegistry.ts       game module registry (the extensibility seam)
-  types/database.ts         hand-maintained mirror of the DB schema
-  types/game.ts             GameModule interface every game implements
+  components/                   shared UI primitives (Button, Field, Layout)
+  routes/                       generic lobby pages: Landing, CreateGame, Join, Lobby, Play
+  games/<slug>/                 one folder per game (turf-war, lockout): Board, LobbySettings, register, api, types
+  lib/supabaseClient.ts         Supabase client, safe to import even if unconfigured
+  lib/gameRegistry.ts           game module registry (the extensibility seam)
+  lib/map/RegionMap.tsx         shared Mapbox layer for spatial games
+  types/database.ts             hand-maintained mirror of the generic lobby schema
+  types/game.ts                 GameModule interface every game implements
 supabase/
-  migrations/0001_init.sql  generic lobby schema (game_types, games, teams, players)
-  functions/hello-world/    example edge function
+  migrations/                   generic lobby schema, then one migration set per game, in order applied
+  functions/                    one folder per edge function (create-game, turf-war-start, lockout-claim-cell, ...)
 ```
 
-## What's next
+## Games
 
-This scaffold intentionally stops before any specific game. Next steps, in rough order:
+- **Turf War** — two teams race to claim SF neighborhoods by completing challenges and hold the largest connected territory by the end of the round. Secret zones, discard/veto mechanics, optional GPS/photo verification.
+- **Lockout** — two teams race to fill a shared NxN challenge board; win by bingo line, majority of cells, or (if time runs out) whichever tiebreak the host picked.
 
-1. Seed a `game_types` row and build the first game (turf war) as a `GameModule` to prove the extensibility seam holds up in practice.
-2. Add the turf war schema (`zones`, `zone_state`, `zone_adjacency`, `challenge_deck`) and its edge functions (create game, join, claim zone, propose/veto discard).
-3. Seed SF neighborhood boundaries (GeoJSON from [data.sfgov.org](https://data.sfgov.org)) and wire up the Mapbox layer, recoloring zones client-side off Supabase Realtime events.
+Both are built as `GameModule`s (see Architecture above) — adding a third game means writing a new `src/games/<slug>/` folder, its own migrations/edge functions, and importing its `register` once in `src/App.tsx`. Nothing in the generic layer needs to change.

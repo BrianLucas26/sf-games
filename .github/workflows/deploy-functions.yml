@@ -1,0 +1,31 @@
+name: Deploy edge functions
+
+# Edge functions only pick up code/content changes when explicitly deployed
+# -- pushing to GitHub alone doesn't redeploy them. This closes that gap for
+# challenges/*.ts (e.g. lockout-start imports challenges/lockout-challenges.ts
+# directly) so editing a challenge file and pushing to main is the entire
+# deploy step, no CLI commands required.
+# Requires a SUPABASE_ACCESS_TOKEN repository secret (Settings -> Secrets
+# and variables -> Actions), generated at
+# supabase.com/dashboard/account/tokens -- same one-time-setup pattern as
+# CLEANUP_SECRET in cleanup-stale-games.yml.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/functions/**'
+      - 'challenges/**'
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Deploy all functions
+        run: supabase functions deploy --project-ref hhectckjwozmulhnrwdt
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}

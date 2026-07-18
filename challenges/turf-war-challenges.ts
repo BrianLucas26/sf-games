@@ -1,0 +1,48 @@
+// Ground truth for Turf War's per-neighborhood challenges, keyed by
+// map_regions.slug (stable across environments, unlike the DB-generated
+// region_id UUID). Edit this file directly to reword a neighborhood's
+// challenge -- pushing to main is the entire deploy step. Every neighborhood
+// in the active 'sf-neighborhoods' region set should have an entry here;
+// turf-war/Board.tsx falls back to no challenge text if one is missing.
+export const TURF_WAR_CHALLENGES: Record<string, string> = {
+  'bayview-hunters-point': 'PLACEHOLDER: take a selfie somewhere in Bayview Hunters Point.',
+  'bernal-heights': 'PLACEHOLDER: take a selfie somewhere in Bernal Heights.',
+  'castro-upper-market': 'PLACEHOLDER: take a selfie somewhere in Castro/Upper Market.',
+  'chinatown': 'PLACEHOLDER: take a selfie somewhere in Chinatown.',
+  'excelsior': 'PLACEHOLDER: take a selfie somewhere in Excelsior.',
+  'financial-district-south-beach': 'PLACEHOLDER: take a selfie somewhere in Financial District/South Beach.',
+  'glen-park': 'PLACEHOLDER: take a selfie somewhere in Glen Park.',
+  'golden-gate-park': 'PLACEHOLDER: take a selfie somewhere in Golden Gate Park.',
+  'haight-ashbury': 'PLACEHOLDER: take a selfie somewhere in Haight Ashbury.',
+  'hayes-valley': 'PLACEHOLDER: take a selfie somewhere in Hayes Valley.',
+  'inner-richmond': 'PLACEHOLDER: take a selfie somewhere in Inner Richmond.',
+  'inner-sunset': 'PLACEHOLDER: take a selfie somewhere in Inner Sunset.',
+  'japantown': 'PLACEHOLDER: take a selfie somewhere in Japantown.',
+  'lakeshore': 'PLACEHOLDER: take a selfie somewhere in Lakeshore.',
+  'lincoln-park': 'PLACEHOLDER: take a selfie somewhere in Lincoln Park.',
+  'lone-mountain-usf': 'PLACEHOLDER: take a selfie somewhere in Lone Mountain/USF.',
+  'marina': 'PLACEHOLDER: take a selfie somewhere in Marina.',
+  'mclaren-park': 'PLACEHOLDER: take a selfie somewhere in McLaren Park.',
+  'mission': 'PLACEHOLDER: take a selfie somewhere in Mission.',
+  'mission-bay': 'PLACEHOLDER: take a selfie somewhere in Mission Bay.',
+  'nob-hill': 'PLACEHOLDER: take a selfie somewhere in Nob Hill.',
+  'noe-valley': 'PLACEHOLDER: take a selfie somewhere in Noe Valley.',
+  'north-beach': 'PLACEHOLDER: take a selfie somewhere in North Beach.',
+  'oceanview-merced-ingleside': 'PLACEHOLDER: take a selfie somewhere in Oceanview/Merced/Ingleside.',
+  'outer-mission': 'PLACEHOLDER: take a selfie somewhere in Outer Mission.',
+  'outer-richmond': 'PLACEHOLDER: take a selfie somewhere in Outer Richmond.',
+  'pacific-heights': 'PLACEHOLDER: take a selfie somewhere in Pacific Heights.',
+  'portola': 'PLACEHOLDER: take a selfie somewhere in Portola.',
+  'potrero-hill': 'PLACEHOLDER: take a selfie somewhere in Potrero Hill.',
+  'presidio': 'PLACEHOLDER: take a selfie somewhere in Presidio.',
+  'presidio-heights': 'PLACEHOLDER: take a selfie somewhere in Presidio Heights.',
+  'russian-hill': 'PLACEHOLDER: take a selfie somewhere in Russian Hill.',
+  'seacliff': 'PLACEHOLDER: take a selfie somewhere in Seacliff.',
+  'south-of-market': 'PLACEHOLDER: take a selfie somewhere in South of Market.',
+  'sunset-parkside': 'PLACEHOLDER: take a selfie somewhere in Sunset/Parkside.',
+  'tenderloin': 'PLACEHOLDER: take a selfie somewhere in Tenderloin.',
+  'twin-peaks': 'PLACEHOLDER: take a selfie somewhere in Twin Peaks.',
+  'visitacion-valley': 'PLACEHOLDER: take a selfie somewhere in Visitacion Valley.',
+  'west-of-twin-peaks': 'PLACEHOLDER: take a selfie somewhere in West of Twin Peaks.',
+  'western-addition': 'PLACEHOLDER: take a selfie somewhere in Western Addition.',
+}

@@ -11,18 +11,11 @@ export type LockoutEndedReason =
   | 'time_limit_tiebreak'
   | 'sudden_death'
 
-export interface LockoutChallengeRow {
-  id: string
-  prompt: string
-  is_active: boolean
-  created_at: string
-}
-
 export interface LockoutCellRow {
   id: string
   game_id: string
   position: number
-  challenge_id: string
+  prompt: string
   claimed_by_team_id: string | null
   claimed_by_player_id: string | null
   claimed_at: string | null
