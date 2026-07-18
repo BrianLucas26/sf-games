@@ -9,7 +9,7 @@ Players pick a game, create or join a lobby with a code/invite link, and play. E
 | Layer | Choice | Why |
 |---|---|---|
 | Frontend | Vite + React + TypeScript + Tailwind v4 | Fast dev loop, plain SPA is enough for this |
-| Hosting / CDN / domain | Cloudflare Pages | Free tier, auto-deploys from git, handles TLS/domain |
+| Hosting / CDN / domain | Cloudflare Workers (static assets) | Free tier, auto-deploys from git via `wrangler` (see [`wrangler.jsonc`](wrangler.jsonc)), handles TLS/domain |
 | Database + Auth + Realtime | Supabase (Postgres) | Free tier covers this scale easily; Realtime broadcasts game events (e.g. "zone claimed") to every connected browser |
 | Trusted game logic | Supabase Edge Functions | The only thing allowed to mutate game state (create game, join, claim a zone, resolve a veto, ...) — avoids client race conditions and cheating via local state edits |
 | Maps (turf war and similar) | Mapbox GL JS | Free tier (50k loads/mo); a "load" is per page load, not per repaint, so live recoloring zones from Realtime events is free |
@@ -31,7 +31,7 @@ pool Lockout samples from at game start). Edit the file and push to `main`;
 that's the entire deploy step:
 
 - The frontend imports these files directly into its build, so Turf War's
-  challenge text goes live the moment Cloudflare Pages finishes its normal
+  challenge text goes live the moment Cloudflare finishes its normal
   auto-deploy — no extra step.
 - `lockout-start` (an edge function) also imports `challenges/lockout-challenges.ts`
   directly, but edge functions only pick up code changes when explicitly
@@ -75,13 +75,18 @@ Visit `http://localhost:5173`. The landing page queries the `game_types` table �
 6. Optional: connect the GitHub repo under **Project Settings → Integrations → GitHub**, and enable migration deploys so `supabase/migrations/*.sql` applies automatically on push to `main`. Skip the "branching" / preview-database option — that's a staging-environment feature aimed at teams, not needed here and can incur cost beyond the free allowance.
 7. For edge functions to auto-deploy on push (see [Challenges](#challenges) above), generate a personal access token at [supabase.com/dashboard/account/tokens](https://supabase.com/dashboard/account/tokens) and add it as a GitHub repository secret named `SUPABASE_ACCESS_TOKEN` (Settings → Secrets and variables → Actions) — same one-time-setup pattern as `CLEANUP_SECRET` below.
 
-### Cloudflare Pages setup
+### Cloudflare setup
+
+Cloudflare has folded Pages into the unified Workers product for new
+projects -- "Create a Worker" connected to a git repo now deploys via
+`wrangler` reading [`wrangler.jsonc`](wrangler.jsonc) rather than a separate
+"build output directory" field. This is a pure static-asset deploy (no
+Worker script) -- all trusted logic lives in Supabase Edge Functions.
 
 1. Push this repo to GitHub.
-2. In the Cloudflare dashboard, create a Pages project connected to the repo.
-3. Build command: `npm run build`. Build output directory: `dist`.
-4. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` as Pages environment variables (same values as `.env.local`).
-5. Attach your domain under the Pages project's custom domains tab.
+2. In the Cloudflare dashboard, create a Worker connected to the repo. Build command: `npm run build`. Deploy command (pre-filled): `npx wrangler deploy` — it reads `wrangler.jsonc`'s `assets.directory` (`./dist`) and serves it, falling back to `index.html` for client-side routes.
+3. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` as build-time environment variables (same values as `.env.local`) — Vite inlines `VITE_*` vars at build time, so they must be available to the `npm run build` step, not just at runtime.
+4. Attach your domain under the project's custom domains settings.
 
 ## Project layout
 

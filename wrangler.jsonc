@@ -1,0 +1,15 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // Static-site deploy only -- no Worker script. This project's trusted
+  // logic lives entirely in Supabase Edge Functions (see supabase/functions/);
+  // Cloudflare here just serves the Vite build output as static assets.
+  "name": "sf-games",
+  "compatibility_date": "2026-07-18",
+  "assets": {
+    "directory": "./dist",
+    // React Router (BrowserRouter) needs unmatched paths like /lobby/<id>
+    // to fall back to index.html so client-side routing can take over,
+    // rather than 404ing on a hard refresh or direct link.
+    "not_found_handling": "single-page-application"
+  }
+}

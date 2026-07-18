@@ -26,3 +26,6 @@ npm-debug.log*
 # supabase
 supabase/.temp
 supabase/.branches
+
+# wrangler (Cloudflare)
+.wrangler
