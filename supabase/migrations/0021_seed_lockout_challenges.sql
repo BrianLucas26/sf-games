@@ -1,0 +1,35 @@
+-- PLACEHOLDER challenge bank -- enough to fill a 5x5 board (25 cells) with
+-- margin so every board size is testable immediately. Real content authoring
+-- is a separate follow-up, same as turf_war_challenges' prompt text.
+insert into lockout_challenges (prompt, is_active)
+values
+  ('PLACEHOLDER: Take a photo with a street performer.', true),
+  ('PLACEHOLDER: Find a mural and pose in front of it.', true),
+  ('PLACEHOLDER: Order something in a language other than English.', true),
+  ('PLACEHOLDER: Get a stranger to give you a high five.', true),
+  ('PLACEHOLDER: Ride a cable car for at least three stops.', true),
+  ('PLACEHOLDER: Take a photo at a scenic overlook.', true),
+  ('PLACEHOLDER: Find a dog and learn its name.', true),
+  ('PLACEHOLDER: Visit a bookstore and read the first page of a random book aloud.', true),
+  ('PLACEHOLDER: Get a receipt with a total ending in .00.', true),
+  ('PLACEHOLDER: Take a photo with a piece of public art.', true),
+  ('PLACEHOLDER: Find a building built before 1920.', true),
+  ('PLACEHOLDER: Buy the cheapest item on a menu.', true),
+  ('PLACEHOLDER: Get a local to recommend their favorite coffee shop.', true),
+  ('PLACEHOLDER: Take a photo of your team at a fountain.', true),
+  ('PLACEHOLDER: Find a street named after a person.', true),
+  ('PLACEHOLDER: Sketch the nearest storefront in under two minutes.', true),
+  ('PLACEHOLDER: Find a payphone (or prove none exist nearby).', true),
+  ('PLACEHOLDER: Get a photo with a bike messenger.', true),
+  ('PLACEHOLDER: Visit a park bench and read its dedication plaque.', true),
+  ('PLACEHOLDER: Find a restaurant with a hand-painted sign.', true),
+  ('PLACEHOLDER: Take a group photo doing the same pose as a nearby statue.', true),
+  ('PLACEHOLDER: Find three different languages on storefront signs within a block.', true),
+  ('PLACEHOLDER: Get a barista to tell you their favorite drink.', true),
+  ('PLACEHOLDER: Find a mailbox and note its collection time.', true),
+  ('PLACEHOLDER: Take a photo with your team forming a human arrow pointing north.', true),
+  ('PLACEHOLDER: Find a plaque or marker commemorating a historical event.', true),
+  ('PLACEHOLDER: Get a stranger to recommend a nearby hidden gem.', true),
+  ('PLACEHOLDER: Find a store that has been open more than 25 years.', true),
+  ('PLACEHOLDER: Take a photo of the whole team mid-jump.', true),
+  ('PLACEHOLDER: Find a crosswalk button and time how long the wait is.', true);

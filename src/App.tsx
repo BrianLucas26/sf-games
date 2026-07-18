@@ -10,6 +10,7 @@ import NotFound from '@/routes/NotFound'
 // Every game registers itself here, once. The rest of the app only ever
 // looks games up by slug through src/lib/gameRegistry.ts.
 import '@/games/turf-war/register'
+import '@/games/lockout/register'
 
 export default function App() {
   return (

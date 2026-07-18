@@ -1,7 +1,6 @@
-// Single source of truth for Turf War's map/UI colors, so the map, the
-// scoreboard, and the open-neighborhoods list can never drift out of sync.
-// Matches the --color-team-a/--color-team-b tokens in src/index.css.
-export const TEAM_COLORS = ['#c85450', '#4d84c4'] as const
+// Turf War's zone-status/map colors. TEAM_COLORS itself lives in
+// src/lib/teamColors.ts since it's shared with every game, not turf-war-specific.
+export { TEAM_COLORS } from '@/lib/teamColors'
 
 export const ZONE_STATUS_COLORS = {
   locked: 'rgba(51, 51, 61, 0.35)',
