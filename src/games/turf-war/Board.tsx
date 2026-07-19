@@ -40,7 +40,7 @@ export function Board({ gameId }: { gameId: string }) {
       .from('teams')
       .select('*')
       .eq('game_id', gameId)
-      .order('created_at')
+      .order('position')
       .then(({ data }) => data && setTeams(data))
 
     supabase
