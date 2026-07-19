@@ -12,6 +12,7 @@ import NotFound from '@/routes/NotFound'
 import '@/games/turf-war/register'
 import '@/games/lockout/register'
 import '@/games/hide-and-seek/register'
+import '@/games/territory-control/register'
 
 export default function App() {
   return (
