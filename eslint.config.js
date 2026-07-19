@@ -23,6 +23,10 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
+      // Standard convention for intentionally-unused params -- e.g. a
+      // GameModule.Board stub that hasn't been implemented yet still has to
+      // accept { gameId } to satisfy the interface.
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     },
   },
 )

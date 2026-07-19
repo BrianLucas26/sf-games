@@ -172,5 +172,13 @@ supabase/
 
 - **Turf War** — two teams race to claim SF neighborhoods by completing challenges and hold the largest connected territory by the end of the round. Secret zones, discard/veto mechanics, optional GPS/photo verification.
 - **Lockout** — two teams race to fill a shared NxN challenge board; win by bingo line, majority of cells, or (if time runs out) whichever tiebreak the host picked.
+- **Hide and Seek** *(scaffold only)* — one team hides across the city while the other searches. `src/games/hide-and-seek/` exists and is registered, but `Board`/`LobbySettings` are placeholder stubs and there's no DB schema or edge functions yet — see [Coming soon games](#coming-soon-games) below.
 
-Both are built as `GameModule`s (see Architecture above) — adding a third game means writing a new `src/games/<slug>/` folder, its own migrations/edge functions, and importing its `register` once in `src/App.tsx`. Nothing in the generic layer needs to change.
+Both Turf War and Lockout are currently marked "Coming Soon!" too (paused, not permanently retired) — see the same section. All are built as `GameModule`s (see Architecture above) — adding a game means writing a new `src/games/<slug>/` folder, its own migrations/edge functions, and importing its `register` once in `src/App.tsx`. Nothing in the generic layer needs to change.
+
+### Coming soon games
+
+`src/lib/comingSoon.ts` lists slugs that show a "Coming Soon!" badge and are
+disabled on the create page, independent of `game_types.is_active` (which
+only controls whether a game appears on the landing page at all). Remove a
+slug from that set once it's ready for real play.

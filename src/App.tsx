@@ -11,6 +11,7 @@ import NotFound from '@/routes/NotFound'
 // looks games up by slug through src/lib/gameRegistry.ts.
 import '@/games/turf-war/register'
 import '@/games/lockout/register'
+import '@/games/hide-and-seek/register'
 
 export default function App() {
   return (
