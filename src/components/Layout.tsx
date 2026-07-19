@@ -1,4 +1,5 @@
 import { Link, Outlet } from 'react-router-dom'
+import { ThemeToggle } from './ThemeToggle'
 
 export default function Layout() {
   return (
@@ -13,7 +14,7 @@ export default function Layout() {
               Games
             </span>
           </Link>
-          <nav className="text-sm text-muted">
+          <nav className="flex items-center gap-4 text-sm text-muted">
             <a
               href="https://github.com/"
               target="_blank"
@@ -22,6 +23,7 @@ export default function Layout() {
             >
               GitHub
             </a>
+            <ThemeToggle />
           </nav>
         </div>
       </header>

@@ -2,6 +2,15 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      // Runs before first paint, synchronously -- avoids a flash of the
+      // wrong theme on load. useTheme() (src/hooks/useTheme.ts) mirrors this
+      // into React state afterward.
+      (function () {
+        var stored = localStorage.getItem('theme')
+        document.documentElement.dataset.theme = stored === 'light' ? 'light' : 'dark'
+      })()
+    </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />

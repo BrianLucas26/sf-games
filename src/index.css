@@ -21,6 +21,21 @@
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
+/* Light mode: warm cream instead of stark white, near-black ink instead of
+   near-white -- accent/danger/team colors stay identical in both themes.
+   Unlayered, so it overrides @theme's (layered) values regardless of
+   selector specificity -- see src/hooks/useTheme.ts for how data-theme gets set. */
+:root[data-theme="light"] {
+  --color-canvas: #f2ecdd;
+  --color-surface: #faf7f0;
+  --color-surface-hover: #eee6d2;
+  --color-border: #e0d7c0;
+  --color-border-strong: #c9bd9d;
+  --color-ink: #1a1712;
+  --color-muted: #6e6454;
+  --color-faint: #9c927b;
+}
+
 body {
   background-color: var(--color-canvas);
   color: var(--color-ink);
