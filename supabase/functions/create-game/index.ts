@@ -39,6 +39,17 @@ Deno.serve(async (req) => {
 
     const admin = createServiceRoleClient()
 
+    // System-wide safety net -- Turnstile raises the cost per creation but
+    // doesn't hard-cap it. cleanup-games already sweeps stale lobbies, so
+    // this should never bind in normal use; it just bounds the worst case.
+    const { count: openGameCount } = await admin
+      .from('games')
+      .select('id', { count: 'exact', head: true })
+      .in('status', ['lobby', 'active'])
+    if ((openGameCount ?? 0) >= 200) {
+      return json({ error: 'Too many games are running right now -- try again shortly.' }, 503)
+    }
+
     const { data: gameType, error: gameTypeError } = await admin
       .from('game_types')
       .select('id')

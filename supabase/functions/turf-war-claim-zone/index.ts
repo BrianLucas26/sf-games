@@ -3,6 +3,7 @@ import { json } from '../_shared/response.ts'
 import { createServiceRoleClient } from '../_shared/supabaseAdmin.ts'
 import { getRequestUser } from '../_shared/getRequestUser.ts'
 import { haversineDistanceMeters } from '../_shared/haversine.ts'
+import { checkRateLimit } from '../_shared/rateLimit.ts'
 
 // Handles both claim paths in one endpoint (the client just says "I'm
 // claiming zone X" and the server figures out which applies), rather than a
@@ -19,6 +20,11 @@ Deno.serve(async (req) => {
     const user = await getRequestUser(req)
     if (!user) return json({ error: 'Sign in (anonymously) first.' }, 401)
 
+    const admin = createServiceRoleClient()
+    if (!(await checkRateLimit(admin, `user:${user.id}`, 'claim-zone', 20))) {
+      return json({ error: 'Too many requests -- slow down.' }, 429)
+    }
+
     const body = await req.json()
     const { game_id, zone_id, lat, lng, photo_url } = body as {
       game_id?: string
@@ -28,8 +34,6 @@ Deno.serve(async (req) => {
       photo_url?: string
     }
     if (!game_id || !zone_id) return json({ error: 'game_id and zone_id are required.' }, 400)
-
-    const admin = createServiceRoleClient()
 
     const { data: game } = await admin.from('games').select('status').eq('id', game_id).single()
     if (!game) return json({ error: 'Game not found.' }, 404)

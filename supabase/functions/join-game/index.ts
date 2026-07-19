@@ -40,6 +40,17 @@ Deno.serve(async (req) => {
       return json({ error: 'This game has already started or ended.' }, 400)
     }
 
+    // Sane ceiling against a join flood targeting one game -- Turnstile
+    // raises the cost per join but doesn't hard-cap it, and nothing else
+    // bounds how many player rows a single lobby can accumulate.
+    const { count: playerCount } = await admin
+      .from('players')
+      .select('id', { count: 'exact', head: true })
+      .eq('game_id', game.id)
+    if ((playerCount ?? 0) >= 40) {
+      return json({ error: 'This lobby is full.' }, 400)
+    }
+
     const { data: player, error: playerError } = await admin
       .from('players')
       .insert({

@@ -3,6 +3,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 import { json } from '../_shared/response.ts'
 import { createServiceRoleClient } from '../_shared/supabaseAdmin.ts'
 import { getRequestUser } from '../_shared/getRequestUser.ts'
+import { checkRateLimit } from '../_shared/rateLimit.ts'
 
 // Bundles every gps_photo proof-of-claim for a game into one ZIP, so players
 // can pull their photos out (to their phone's camera roll, then wherever
@@ -21,14 +22,28 @@ Deno.serve(async (req) => {
     const user = await getRequestUser(req)
     if (!user) return json({ error: 'Sign in (anonymously) first.' }, 401)
 
+    const admin = createServiceRoleClient()
+    if (!(await checkRateLimit(admin, `user:${user.id}`, 'download-photos', 5))) {
+      return json({ error: 'Too many requests -- slow down.' }, 429)
+    }
+
     const body = await req.json()
     const { game_id } = body as { game_id?: string }
     if (!game_id) return json({ error: 'game_id is required.' }, 400)
 
-    const admin = createServiceRoleClient()
-
     const { data: game } = await admin.from('games').select('join_code').eq('id', game_id).single()
     if (!game) return json({ error: 'Game not found.' }, 404)
+
+    // Only an actual player in this game can pull its photos -- without this,
+    // game_id alone (discoverable via the public games table) was enough to
+    // trigger a server-side fan-out of every photo fetch + zip compression.
+    const { data: player } = await admin
+      .from('players')
+      .select('id')
+      .eq('game_id', game_id)
+      .eq('auth_user_id', user.id)
+      .maybeSingle()
+    if (!player) return json({ error: 'You are not a player in this game.' }, 403)
 
     const { data: captures } = await admin
       .from('turf_war_captures')

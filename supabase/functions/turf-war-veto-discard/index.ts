@@ -2,6 +2,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 import { json } from '../_shared/response.ts'
 import { createServiceRoleClient } from '../_shared/supabaseAdmin.ts'
 import { getRequestUser } from '../_shared/getRequestUser.ts'
+import { checkRateLimit } from '../_shared/rateLimit.ts'
 
 // Only the team NOT capturing can veto, and only while the proposal is still
 // pending and within its window. The `.eq('status', 'pending')` in the
@@ -14,11 +15,14 @@ Deno.serve(async (req) => {
     const user = await getRequestUser(req)
     if (!user) return json({ error: 'Sign in (anonymously) first.' }, 401)
 
+    const admin = createServiceRoleClient()
+    if (!(await checkRateLimit(admin, `user:${user.id}`, 'veto-discard', 10))) {
+      return json({ error: 'Too many requests -- slow down.' }, 429)
+    }
+
     const body = await req.json()
     const { proposal_id } = body as { proposal_id?: string }
     if (!proposal_id) return json({ error: 'proposal_id is required.' }, 400)
-
-    const admin = createServiceRoleClient()
 
     const { data: proposal } = await admin
       .from('turf_war_discard_proposals')

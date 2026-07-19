@@ -2,6 +2,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 import { json } from '../_shared/response.ts'
 import { createServiceRoleClient } from '../_shared/supabaseAdmin.ts'
 import { getRequestUser } from '../_shared/getRequestUser.ts'
+import { checkRateLimit } from '../_shared/rateLimit.ts'
 
 const VETO_WINDOW_SECONDS = 30
 
@@ -16,6 +17,11 @@ Deno.serve(async (req) => {
     const user = await getRequestUser(req)
     if (!user) return json({ error: 'Sign in (anonymously) first.' }, 401)
 
+    const admin = createServiceRoleClient()
+    if (!(await checkRateLimit(admin, `user:${user.id}`, 'propose-discard', 10))) {
+      return json({ error: 'Too many requests -- slow down.' }, 429)
+    }
+
     const body = await req.json()
     const { game_id, capture_id, target_zone_id } = body as {
       game_id?: string
@@ -25,8 +31,6 @@ Deno.serve(async (req) => {
     if (!game_id || !capture_id || !target_zone_id) {
       return json({ error: 'game_id, capture_id, and target_zone_id are required.' }, 400)
     }
-
-    const admin = createServiceRoleClient()
 
     const { data: player } = await admin
       .from('players')

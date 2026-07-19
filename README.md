@@ -42,10 +42,19 @@ that's the entire deploy step:
 ## Abuse protection
 
 Every table is `select`-only from the browser (see Architecture above) —
-direct writes through the public REST API aren't possible. But the edge
-functions themselves have no auth beyond "does this request carry a valid
-session," and `ensureAnonymousSession()` (`src/lib/auth.ts`) creates one
-silently on first load with no human check. Two things close the real gaps:
+direct writes through the public REST API aren't possible. But `select`
+itself is currently wide open (`using (true)` on every table), and RLS has
+no way to distinguish "the client filtered by a known id" from "the client
+listed everything" — both are evaluated identically per row. **This means
+`games`/`players`/`teams` are fully enumerable today**: anyone with the
+publishable key (which is public in the JS bundle regardless) can list
+every game ever created, including its join code, and every player's
+display name. Closing this properly means moving those reads off raw table
+access onto RPCs that require a specific id/code, which also touches how
+Realtime subscriptions authorize (`postgres_changes` honors the same RLS
+policies) — a real migration, not a quick patch, and intentionally not done
+yet. The mitigations below reduce the *consequences* of that gap without
+requiring it first:
 
 - **Cloudflare Turnstile** gates `create-game` and `join-game` — the two
   writes a script could otherwise spam with zero friction. The token is
@@ -56,6 +65,27 @@ silently on first load with no human check. Two things close the real gaps:
   directly (using the publishable key, which is public in the JS bundle
   either way) never touches Cloudflare at all. Turnstile verification is the
   one control that still catches that.
+- **Rate limiting** (`supabase/migrations/0026_rate_limiting.sql`,
+  `supabase/functions/_shared/rateLimit.ts`) caps `claim-zone`/`claim-cell`/
+  `undo-claim`/`select-team`/`propose-discard`/`veto-discard` at 10-20
+  requests/minute per caller, and `download-game-photos` at 5/minute.
+  Turnstile only gates the entry points; once someone has a real player row
+  (via one Turnstile-gated join), nothing else throttled how many times they
+  could hit these. Fixed-window, keyed by the caller's auth user id (already
+  resolved by every one of these via `getRequestUser()`), fails open on a
+  DB error so a rate-limiter outage can't take down real gameplay.
+- **`download-game-photos` requires actual game membership.** It used to
+  only check "is this caller signed in," not "is this caller a player in
+  this game" — combined with table enumeration above, anyone could trigger
+  it for any game, and each call fans out into N photo fetches + zip
+  compression server-side. One cheap request causing that much server-side
+  work is a textbook amplification vector; it's now gated on a real
+  `players` row for that game.
+- **Player and total-game caps** — `join-game` rejects at 40 players per
+  game, `create-game` rejects at 200 concurrent lobby/active games
+  system-wide. Both are safety nets, not expected to bind in normal use
+  (`cleanup-games` already sweeps stale lobbies) — they just bound the
+  worst case if Turnstile is ever bypassed at scale.
 - **Storage bucket limits** (`supabase/migrations/0025_limit_claim_photo_uploads.sql`)
   cap claim-photo uploads to 10MB and image MIME types only — the upload
   policy in `0004_storage.sql` only checks "is this an authenticated
@@ -98,9 +128,9 @@ Visit `http://localhost:5173`. The landing page queries the `game_types` table �
    npx supabase db push   # applies supabase/migrations
    ```
 3. Copy the project URL and **publishable key** (not the secret key) from **Project Settings → API Keys** into `.env.local`. The publishable key is safe for the browser — it's the direct replacement for the old "anon" key, and RLS still governs what it can read/write. The secret key replaces the old "service_role" key and must only ever be used server-side (edge functions); never put it in a `VITE_`-prefixed variable, since Vite inlines those into the client bundle.
-4. (Optional, once you need trusted writes) deploy the example edge function to confirm the pipeline works end to end:
+4. Deploy the edge functions (or let [`deploy-functions.yml`](.github/workflows/deploy-functions.yml) do it on push, once `SUPABASE_ACCESS_TOKEN` is set — see step 7):
    ```bash
-   npx supabase functions deploy hello-world
+   npx supabase functions deploy
    ```
 5. Supabase free-tier projects pause after a week of inactivity — [`.github/workflows/keep-supabase-alive.yml`](.github/workflows/keep-supabase-alive.yml) pings the project daily via GitHub Actions to prevent that. Requires no setup beyond this repo being on GitHub with Actions enabled (the default).
 6. Optional: connect the GitHub repo under **Project Settings → Integrations → GitHub**, and enable migration deploys so `supabase/migrations/*.sql` applies automatically on push to `main`. Skip the "branching" / preview-database option — that's a staging-environment feature aimed at teams, not needed here and can incur cost beyond the free allowance.
