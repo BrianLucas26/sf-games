@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Button } from '@/components/Button'
 import { Field, TextInput } from '@/components/Field'
+import { Turnstile } from '@/components/Turnstile'
 import { joinGame } from '@/lib/gameApi'
 
 export default function Join() {
@@ -9,15 +10,20 @@ export default function Join() {
   const [searchParams] = useSearchParams()
   const [joinCode, setJoinCode] = useState(searchParams.get('code')?.toUpperCase() ?? '')
   const [displayName, setDisplayName] = useState('')
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   async function handleJoin() {
-    if (!joinCode.trim() || !displayName.trim()) return
+    if (!joinCode.trim() || !displayName.trim() || !turnstileToken) return
     setBusy(true)
     setError(null)
     try {
-      const { game } = await joinGame({ joinCode: joinCode.trim(), displayName: displayName.trim() })
+      const { game } = await joinGame({
+        joinCode: joinCode.trim(),
+        displayName: displayName.trim(),
+        turnstileToken,
+      })
       navigate(`/lobby/${game.id}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to join game.')
@@ -43,7 +49,13 @@ export default function Join() {
         <TextInput value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Player" />
       </Field>
 
-      <Button onClick={handleJoin} disabled={busy || !joinCode.trim() || !displayName.trim()} className="w-full">
+      <Turnstile onToken={setTurnstileToken} />
+
+      <Button
+        onClick={handleJoin}
+        disabled={busy || !joinCode.trim() || !displayName.trim() || !turnstileToken}
+        className="w-full"
+      >
         {busy ? 'Joining…' : 'Join lobby'}
       </Button>
       {error && <p className="text-sm text-danger">{error}</p>}

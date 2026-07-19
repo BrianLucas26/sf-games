@@ -39,6 +39,37 @@ that's the entire deploy step:
   handles that automatically on every push touching `supabase/functions/**`
   or `challenges/**` — see the `SUPABASE_ACCESS_TOKEN` setup step below.
 
+## Abuse protection
+
+Every table is `select`-only from the browser (see Architecture above) —
+direct writes through the public REST API aren't possible. But the edge
+functions themselves have no auth beyond "does this request carry a valid
+session," and `ensureAnonymousSession()` (`src/lib/auth.ts`) creates one
+silently on first load with no human check. Two things close the real gaps:
+
+- **Cloudflare Turnstile** gates `create-game` and `join-game` — the two
+  writes a script could otherwise spam with zero friction. The token is
+  verified server-side in the edge function itself
+  (`supabase/functions/_shared/verifyTurnstile.ts`), which matters because
+  Cloudflare's own Bot Fight Mode/WAF only sees traffic hitting your
+  *site's* domain — a script calling `*.supabase.co/functions/v1/create-game`
+  directly (using the publishable key, which is public in the JS bundle
+  either way) never touches Cloudflare at all. Turnstile verification is the
+  one control that still catches that.
+- **Storage bucket limits** (`supabase/migrations/0025_limit_claim_photo_uploads.sql`)
+  cap claim-photo uploads to 10MB and image MIME types only — the upload
+  policy in `0004_storage.sql` only checks "is this an authenticated
+  session" (anonymous sessions qualify), and Storage writes go straight
+  through Supabase's Storage API, bypassing edge functions and Turnstile
+  entirely, so this needed its own limit.
+
+**Recommended dashboard settings (not code, do these yourself):**
+- Mapbox → your token → add a URL restriction for your domain, so a scraped
+  token can't be used to burn your quota from somewhere else.
+- Cloudflare → Security → enable **Bot Fight Mode** (free).
+- Supabase → Authentication → Rate Limits → confirm the anonymous sign-in
+  limit per IP is set to something reasonable.
+
 ## Data lifecycle
 
 Game instances are meant to be ephemeral, not permanent records:
@@ -85,8 +116,9 @@ Worker script) -- all trusted logic lives in Supabase Edge Functions.
 
 1. Push this repo to GitHub.
 2. In the Cloudflare dashboard, create a Worker connected to the repo. Build command: `npm run build`. Deploy command (pre-filled): `npx wrangler deploy` — it reads `wrangler.jsonc`'s `assets.directory` (`./dist`) and serves it, falling back to `index.html` for client-side routes.
-3. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` as build-time environment variables (same values as `.env.local`) — Vite inlines `VITE_*` vars at build time, so they must be available to the `npm run build` step, not just at runtime.
+3. Add `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, and `VITE_TURNSTILE_SITE_KEY` as build-time environment variables (same values as `.env.local`) — Vite inlines `VITE_*` vars at build time, so they must be available to the `npm run build` step, not just at runtime.
 4. Attach your domain under the project's custom domains settings.
+5. Cloudflare dashboard → **Turnstile** → Add site, using the same domain (add `localhost` too, so local dev works with the same key). Widget mode: **Managed**. Put the **Site Key** in `VITE_TURNSTILE_SITE_KEY` (both `.env.local` and the Worker's build variables above); set the **Secret Key** server-side only, via `npx supabase secrets set TURNSTILE_SECRET=...` — never in a `VITE_`-prefixed variable, or Vite would ship it straight to the browser.
 
 ## Project layout
 

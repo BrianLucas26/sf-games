@@ -3,6 +3,7 @@ import { json } from '../_shared/response.ts'
 import { createServiceRoleClient } from '../_shared/supabaseAdmin.ts'
 import { getRequestUser } from '../_shared/getRequestUser.ts'
 import { generateJoinCode } from '../_shared/joinCode.ts'
+import { verifyTurnstile } from '../_shared/verifyTurnstile.ts'
 
 // Generic across every game type: look up game_types by slug, create the
 // games + teams rows, and add the caller as the host's first player. Any
@@ -16,16 +17,25 @@ Deno.serve(async (req) => {
     if (!user) return json({ error: 'Sign in (anonymously) before creating a game.' }, 401)
 
     const body = await req.json()
-    const { game_type_slug, host_display_name, team_names, settings } = body as {
+    const { game_type_slug, host_display_name, team_names, settings, turnstile_token } = body as {
       game_type_slug?: string
       host_display_name?: string
       team_names?: string[]
       settings?: Record<string, unknown>
+      turnstile_token?: string
     }
 
     if (!game_type_slug || !host_display_name) {
       return json({ error: 'game_type_slug and host_display_name are required.' }, 400)
     }
+
+    // Supabase's own edge runtime forwards the caller's IP via x-forwarded-for
+    // (this request never passes through the site's Cloudflare zone, so
+    // cf-connecting-ip wouldn't be present here even if the site is fronted
+    // by Cloudflare).
+    const callerIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+    const verified = await verifyTurnstile(turnstile_token, callerIp)
+    if (!verified) return json({ error: 'Human verification failed. Please try again.' }, 403)
 
     const admin = createServiceRoleClient()
 

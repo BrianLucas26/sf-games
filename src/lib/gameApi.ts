@@ -9,19 +9,22 @@ export function createGame(params: {
   hostDisplayName: string
   teamNames?: string[]
   settings?: object
+  turnstileToken: string
 }) {
   return callFunction<{ game: GameRow; teams: TeamRow[]; player: PlayerRow }>('create-game', {
     game_type_slug: params.gameTypeSlug,
     host_display_name: params.hostDisplayName,
     team_names: params.teamNames,
     settings: params.settings,
+    turnstile_token: params.turnstileToken,
   })
 }
 
-export function joinGame(params: { joinCode: string; displayName: string }) {
+export function joinGame(params: { joinCode: string; displayName: string; turnstileToken: string }) {
   return callFunction<{ game: GameRow; player: PlayerRow }>('join-game', {
     join_code: params.joinCode,
     display_name: params.displayName,
+    turnstile_token: params.turnstileToken,
   })
 }
 

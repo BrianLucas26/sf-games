@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/Button'
 import { Field, TextInput } from '@/components/Field'
+import { Turnstile } from '@/components/Turnstile'
 import { supabase } from '@/lib/supabaseClient'
 import { createGame } from '@/lib/gameApi'
 import { listRegisteredGames } from '@/lib/gameRegistry'
@@ -12,6 +13,7 @@ export default function CreateGame() {
   const [gameTypes, setGameTypes] = useState<GameTypeRow[]>([])
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null)
   const [displayName, setDisplayName] = useState('')
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -30,7 +32,7 @@ export default function CreateGame() {
   }, [])
 
   async function handleCreate() {
-    if (!selectedSlug || !displayName.trim()) return
+    if (!selectedSlug || !displayName.trim() || !turnstileToken) return
     setBusy(true)
     setError(null)
     try {
@@ -39,6 +41,7 @@ export default function CreateGame() {
         gameTypeSlug: selectedSlug,
         hostDisplayName: displayName.trim(),
         settings: module?.defaultSettings,
+        turnstileToken,
       })
       navigate(`/lobby/${game.id}`)
     } catch (err) {
@@ -80,7 +83,13 @@ export default function CreateGame() {
         />
       </Field>
 
-      <Button onClick={handleCreate} disabled={busy || !selectedSlug || !displayName.trim()} className="w-full">
+      <Turnstile onToken={setTurnstileToken} />
+
+      <Button
+        onClick={handleCreate}
+        disabled={busy || !selectedSlug || !displayName.trim() || !turnstileToken}
+        className="w-full"
+      >
         {busy ? 'Creating…' : 'Create lobby'}
       </Button>
       {error && <p className="text-sm text-danger">{error}</p>}

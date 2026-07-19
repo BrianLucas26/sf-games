@@ -2,6 +2,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 import { json } from '../_shared/response.ts'
 import { createServiceRoleClient } from '../_shared/supabaseAdmin.ts'
 import { getRequestUser } from '../_shared/getRequestUser.ts'
+import { verifyTurnstile } from '../_shared/verifyTurnstile.ts'
 
 // Generic across every game type: resolve a join code to a game and add the
 // caller as a player, not yet on a team (see select-team).
@@ -13,10 +14,18 @@ Deno.serve(async (req) => {
     if (!user) return json({ error: 'Sign in (anonymously) before joining a game.' }, 401)
 
     const body = await req.json()
-    const { join_code, display_name } = body as { join_code?: string; display_name?: string }
+    const { join_code, display_name, turnstile_token } = body as {
+      join_code?: string
+      display_name?: string
+      turnstile_token?: string
+    }
     if (!join_code || !display_name) {
       return json({ error: 'join_code and display_name are required.' }, 400)
     }
+
+    const callerIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+    const verified = await verifyTurnstile(turnstile_token, callerIp)
+    if (!verified) return json({ error: 'Human verification failed. Please try again.' }, 403)
 
     const admin = createServiceRoleClient()
 
