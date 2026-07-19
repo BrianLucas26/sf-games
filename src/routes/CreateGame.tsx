@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/Button'
 import { Field, TextInput } from '@/components/Field'
 import { Turnstile } from '@/components/Turnstile'
+import { COMING_SOON_SLUGS } from '@/lib/comingSoon'
 import { supabase } from '@/lib/supabaseClient'
 import { createGame } from '@/lib/gameApi'
 import { listRegisteredGames } from '@/lib/gameRegistry'
@@ -56,20 +57,33 @@ export default function CreateGame() {
       <h1 className="text-2xl font-semibold tracking-tight text-ink">Create a game</h1>
 
       <div className="space-y-2">
-        {gameTypes.map((gt) => (
-          <button
-            key={gt.id}
-            onClick={() => setSelectedSlug(gt.slug)}
-            className={`block w-full rounded-xl border p-4 text-left transition-colors ${
-              selectedSlug === gt.slug
-                ? 'border-accent bg-accent/[0.06]'
-                : 'border-border bg-surface hover:border-border-strong'
-            }`}
-          >
-            <p className="font-display font-medium text-ink">{gt.name}</p>
-            {gt.description && <p className="mt-1 text-sm text-muted">{gt.description}</p>}
-          </button>
-        ))}
+        {gameTypes.map((gt) => {
+          const comingSoon = COMING_SOON_SLUGS.has(gt.slug)
+          return (
+            <button
+              key={gt.id}
+              onClick={() => setSelectedSlug(gt.slug)}
+              disabled={comingSoon}
+              className={`block w-full rounded-xl border p-4 text-left transition-colors ${
+                comingSoon
+                  ? 'cursor-not-allowed border-border bg-surface opacity-60'
+                  : selectedSlug === gt.slug
+                    ? 'border-accent bg-accent/[0.06]'
+                    : 'border-border bg-surface hover:border-border-strong'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <p className="font-display font-medium text-ink">{gt.name}</p>
+                {comingSoon && (
+                  <span className="rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-[11px] font-medium text-accent">
+                    Coming Soon!
+                  </span>
+                )}
+              </div>
+              {gt.description && <p className="mt-1 text-sm text-muted">{gt.description}</p>}
+            </button>
+          )
+        })}
         {gameTypes.length === 0 && (
           <p className="text-sm text-faint">No games are available to create yet.</p>
         )}

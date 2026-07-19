@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { buttonClasses } from '@/components/Button'
+import { COMING_SOON_SLUGS } from '@/lib/comingSoon'
 import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient'
 import type { GameTypeRow } from '@/types/database'
 
@@ -81,7 +82,14 @@ export default function Landing() {
                 key={gameType.id}
                 className="rounded-xl border border-border bg-surface p-5 transition-colors hover:border-border-strong"
               >
-                <h2 className="font-display text-base font-medium text-ink">{gameType.name}</h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="font-display text-base font-medium text-ink">{gameType.name}</h2>
+                  {COMING_SOON_SLUGS.has(gameType.slug) && (
+                    <span className="rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-[11px] font-medium text-accent">
+                      Coming Soon!
+                    </span>
+                  )}
+                </div>
                 {gameType.description && (
                   <p className="mt-1.5 text-sm leading-relaxed text-muted">{gameType.description}</p>
                 )}
