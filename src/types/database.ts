@@ -3,11 +3,11 @@
 
 export type GameStatus = 'lobby' | 'active' | 'completed' | 'cancelled'
 
+// name/description live in content/game-types.ts, not the DB -- see
+// supabase/migrations/0030_drop_game_types_display_columns.sql.
 export interface GameTypeRow {
   id: string
   slug: string
-  name: string
-  description: string | null
   is_active: boolean
   created_at: string
 }

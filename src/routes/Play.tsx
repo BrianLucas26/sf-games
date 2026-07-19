@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
+import { GAME_TYPE_CONTENT } from '../../content/game-types'
 import { supabase } from '@/lib/supabaseClient'
 import { getGameModule } from '@/lib/gameRegistry'
 import type { GameRow } from '@/types/database'
 
 interface GameWithType extends GameRow {
-  game_types: { slug: string; name: string }
+  game_types: { slug: string }
 }
 
 export default function Play() {
@@ -15,7 +16,7 @@ export default function Play() {
   useEffect(() => {
     supabase
       .from('games')
-      .select('*, game_types(slug, name)')
+      .select('*, game_types(slug)')
       .eq('id', gameId)
       .single()
       .then(({ data }) => data && setGame(data as unknown as GameWithType))
@@ -30,7 +31,9 @@ export default function Play() {
 
   return (
     <div>
-      <h1 className="mb-5 text-xl font-semibold tracking-tight text-ink">{game.game_types.name}</h1>
+      <h1 className="mb-5 text-xl font-semibold tracking-tight text-ink">
+        {GAME_TYPE_CONTENT[game.game_types.slug]?.name ?? game.game_types.slug}
+      </h1>
       <module.Board gameId={gameId} />
     </div>
   )

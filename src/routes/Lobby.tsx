@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { GAME_TYPE_CONTENT } from '../../content/game-types'
 import { Button } from '@/components/Button'
 import { supabase } from '@/lib/supabaseClient'
 import { useCurrentPlayer } from '@/hooks/useCurrentPlayer'
@@ -8,7 +9,7 @@ import { cancelGame, selectTeam } from '@/lib/gameApi'
 import type { GameRow, PlayerRow, TeamRow } from '@/types/database'
 
 interface GameWithType extends GameRow {
-  game_types: { slug: string; name: string }
+  game_types: { slug: string }
 }
 
 export default function Lobby() {
@@ -25,7 +26,7 @@ export default function Lobby() {
   const load = useCallback(() => {
     supabase
       .from('games')
-      .select('*, game_types(slug, name)')
+      .select('*, game_types(slug)')
       .eq('id', gameId)
       .maybeSingle()
       .then(({ data }) => {
@@ -125,7 +126,9 @@ export default function Lobby() {
   return (
     <div className="max-w-2xl space-y-7">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-ink">{game.game_types.name} lobby</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-ink">
+          {GAME_TYPE_CONTENT[game.game_types.slug]?.name ?? game.game_types.slug} lobby
+        </h1>
         <p className="mt-2 text-sm text-muted">
           Join code <span className="font-display tracking-wider text-accent">{game.join_code}</span>
         </p>

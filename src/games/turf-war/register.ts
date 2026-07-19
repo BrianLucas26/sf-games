@@ -1,3 +1,4 @@
+import { GAME_TYPE_CONTENT } from '../../../content/game-types'
 import { registerGame } from '@/lib/gameRegistry'
 import { startTurfWar } from './api'
 import { Board } from './Board'
@@ -6,9 +7,7 @@ import { DEFAULT_TURF_WAR_SETTINGS } from './types'
 
 registerGame({
   slug: 'turf-war',
-  name: 'Turf War',
-  description:
-    'Two teams race to claim SF neighborhoods and hold the largest connected territory by the end of the round.',
+  ...GAME_TYPE_CONTENT['turf-war'],
   LobbySettings,
   Board,
   defaultSettings: DEFAULT_TURF_WAR_SETTINGS,

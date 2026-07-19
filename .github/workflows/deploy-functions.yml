@@ -2,8 +2,8 @@ name: Deploy edge functions
 
 # Edge functions only pick up code/content changes when explicitly deployed
 # -- pushing to GitHub alone doesn't redeploy them. This closes that gap for
-# challenges/*.ts (e.g. lockout-start imports challenges/lockout-challenges.ts
-# directly) so editing a challenge file and pushing to main is the entire
+# content/*.ts (e.g. lockout-start imports content/lockout-challenges.ts
+# directly) so editing a content file and pushing to main is the entire
 # deploy step, no CLI commands required.
 # Requires a SUPABASE_ACCESS_TOKEN repository secret (Settings -> Secrets
 # and variables -> Actions), generated at
@@ -14,7 +14,7 @@ on:
     branches: [main]
     paths:
       - 'supabase/functions/**'
-      - 'challenges/**'
+      - 'content/**'
   workflow_dispatch: {}
 
 jobs:

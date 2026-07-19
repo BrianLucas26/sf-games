@@ -1,3 +1,4 @@
+import { GAME_TYPE_CONTENT } from '../../../content/game-types'
 import { registerGame } from '@/lib/gameRegistry'
 import { Board } from './Board'
 import { LobbySettings } from './LobbySettings'
@@ -8,8 +9,7 @@ import { DEFAULT_HIDE_AND_SEEK_SETTINGS } from './types'
 // (src/lib/comingSoon.ts) until the real mechanics land.
 registerGame({
   slug: 'hide-and-seek',
-  name: 'Hide and Seek',
-  description: 'One team hides across the city while the other searches for them.',
+  ...GAME_TYPE_CONTENT['hide-and-seek'],
   LobbySettings,
   Board,
   defaultSettings: DEFAULT_HIDE_AND_SEEK_SETTINGS,

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { GAME_TYPE_CONTENT } from '../../content/game-types'
 import { Button } from '@/components/Button'
 import { Field, TextInput } from '@/components/Field'
 import { Turnstile } from '@/components/Turnstile'
@@ -21,9 +22,9 @@ export default function CreateGame() {
   useEffect(() => {
     supabase
       .from('game_types')
-      .select('*')
+      .select('id, slug, is_active, created_at')
       .eq('is_active', true)
-      .order('name')
+      .order('slug')
       .then(({ data }) => {
         if (!data) return
         // Only offer games this build actually has a registered module for.
@@ -59,6 +60,7 @@ export default function CreateGame() {
       <div className="space-y-2">
         {gameTypes.map((gt) => {
           const comingSoon = COMING_SOON_SLUGS.has(gt.slug)
+          const content = GAME_TYPE_CONTENT[gt.slug]
           return (
             <button
               key={gt.id}
@@ -73,14 +75,14 @@ export default function CreateGame() {
               }`}
             >
               <div className="flex items-center gap-2">
-                <p className="font-display font-medium text-ink">{gt.name}</p>
+                <p className="font-display font-medium text-ink">{content?.name ?? gt.slug}</p>
                 {comingSoon && (
                   <span className="rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-[11px] font-medium text-accent">
                     Coming Soon!
                   </span>
                 )}
               </div>
-              {gt.description && <p className="mt-1 text-sm text-muted">{gt.description}</p>}
+              {content?.description && <p className="mt-1 text-sm text-muted">{content.description}</p>}
             </button>
           )
         })}

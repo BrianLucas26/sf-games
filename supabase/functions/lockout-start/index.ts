@@ -2,7 +2,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 import { json } from '../_shared/response.ts'
 import { createServiceRoleClient } from '../_shared/supabaseAdmin.ts'
 import { getRequestUser } from '../_shared/getRequestUser.ts'
-import { LOCKOUT_CHALLENGES } from '../../../challenges/lockout-challenges.ts'
+import { LOCKOUT_CHALLENGES } from '../../../content/lockout-challenges.ts'
 
 interface LockoutSettings {
   board_size: 3 | 4 | 5

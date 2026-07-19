@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { GAME_TYPE_CONTENT } from '../../content/game-types'
 import { buttonClasses } from '@/components/Button'
 import { COMING_SOON_SLUGS } from '@/lib/comingSoon'
 import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient'
@@ -27,9 +28,9 @@ export default function Landing() {
 
     supabase
       .from('game_types')
-      .select('*')
+      .select('id, slug, is_active, created_at')
       .eq('is_active', true)
-      .order('name')
+      .order('slug')
       .then(({ data, error }) => {
         if (cancelled) return
         if (error) {
@@ -77,24 +78,27 @@ export default function Landing() {
 
         {state.status === 'ready' && state.gameTypes.length > 0 && (
           <ul className="grid gap-4 sm:grid-cols-2">
-            {state.gameTypes.map((gameType) => (
-              <li
-                key={gameType.id}
-                className="rounded-xl border border-border bg-surface p-5 transition-colors hover:border-border-strong"
-              >
-                <div className="flex items-center gap-2">
-                  <h2 className="font-display text-base font-medium text-ink">{gameType.name}</h2>
-                  {COMING_SOON_SLUGS.has(gameType.slug) && (
-                    <span className="rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-[11px] font-medium text-accent">
-                      Coming Soon!
-                    </span>
+            {state.gameTypes.map((gameType) => {
+              const content = GAME_TYPE_CONTENT[gameType.slug]
+              return (
+                <li
+                  key={gameType.id}
+                  className="rounded-xl border border-border bg-surface p-5 transition-colors hover:border-border-strong"
+                >
+                  <div className="flex items-center gap-2">
+                    <h2 className="font-display text-base font-medium text-ink">{content?.name ?? gameType.slug}</h2>
+                    {COMING_SOON_SLUGS.has(gameType.slug) && (
+                      <span className="rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-[11px] font-medium text-accent">
+                        Coming Soon!
+                      </span>
+                    )}
+                  </div>
+                  {content?.description && (
+                    <p className="mt-1.5 text-sm leading-relaxed text-muted">{content.description}</p>
                   )}
-                </div>
-                {gameType.description && (
-                  <p className="mt-1.5 text-sm leading-relaxed text-muted">{gameType.description}</p>
-                )}
-              </li>
-            ))}
+                </li>
+              )
+            })}
           </ul>
         )}
       </div>
