@@ -8,9 +8,10 @@ interface LockoutGridProps {
   onSelect: (cell: LockoutCellRow) => void
 }
 
-// Cells stay compact (a board can hit 25 cells) -- just a position number and
-// a team-color fill when claimed. Tapping opens the full challenge text in
-// LockoutCellDetail rather than cramming prompt text into every cell.
+// Cells show the challenge's short prompt text directly (clamped to fit --
+// a board can hit 25 cells) plus a team-color fill when claimed. Tapping
+// opens the full detail -- prompt plus an optional longer description --
+// in LockoutCellDetail.
 export function LockoutGrid({ cells, boardSize, teamColorById, selectedCellId, onSelect }: LockoutGridProps) {
   const byPosition = new Map(cells.map((c) => [c.position, c]))
 
@@ -29,12 +30,18 @@ export function LockoutGrid({ cells, boardSize, teamColorById, selectedCellId, o
             key={position}
             disabled={!cell}
             onClick={() => cell && onSelect(cell)}
-            className={`flex aspect-square items-center justify-center rounded-md border text-xs font-medium transition-colors sm:text-sm ${
+            className={`flex aspect-square items-center justify-center rounded-md border p-1 text-center transition-colors sm:p-1.5 ${
               isSelected ? 'border-accent ring-1 ring-accent/50' : 'border-border'
             }`}
             style={{ backgroundColor: teamColor ? `${teamColor}80` : 'rgba(154, 154, 166, 0.15)' }}
           >
-            <span className={teamColor ? 'text-ink' : 'text-faint'}>{position + 1}</span>
+            <span
+              className={`line-clamp-4 text-[9px] leading-tight font-medium sm:text-[11px] ${
+                teamColor ? 'text-ink' : 'text-faint'
+              }`}
+            >
+              {cell?.prompt}
+            </span>
           </button>
         )
       })}

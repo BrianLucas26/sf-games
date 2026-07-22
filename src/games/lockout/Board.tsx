@@ -109,7 +109,6 @@ export function Board({ gameId }: { gameId: string }) {
           <LockoutCellDetail
             gameId={gameId}
             cell={liveSelectedCell}
-            challenge={liveSelectedCell.prompt}
             player={player}
             teams={teams}
             gameActive={gameStatus === 'active'}

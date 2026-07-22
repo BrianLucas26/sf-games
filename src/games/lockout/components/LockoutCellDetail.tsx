@@ -7,22 +7,13 @@ import type { LockoutCellRow } from '../types'
 interface LockoutCellDetailProps {
   gameId: string
   cell: LockoutCellRow
-  challenge?: string
   player: PlayerRow
   teams: TeamRow[]
   gameActive: boolean
   onClose: () => void
 }
 
-export function LockoutCellDetail({
-  gameId,
-  cell,
-  challenge,
-  player,
-  teams,
-  gameActive,
-  onClose,
-}: LockoutCellDetailProps) {
+export function LockoutCellDetail({ gameId, cell, player, teams, gameActive, onClose }: LockoutCellDetailProps) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -59,16 +50,16 @@ export function LockoutCellDetail({
 
   return (
     <div className="rounded-xl border border-border bg-surface p-4">
-      <div className="flex items-start justify-between">
-        <h3 className="font-display font-medium text-ink">Challenge #{cell.position + 1}</h3>
-        <button onClick={onClose} className="text-xs text-faint transition-colors hover:text-muted">
+      <div className="flex items-start justify-between gap-3">
+        <h3 className="font-display font-medium text-ink">{cell.prompt}</h3>
+        <button onClick={onClose} className="shrink-0 text-xs text-faint transition-colors hover:text-muted">
           Close
         </button>
       </div>
       <p className="mt-1 text-xs tracking-wide text-muted">
         {claimingTeam ? `Claimed by ${claimingTeam.name}` : 'Unclaimed'}
       </p>
-      {challenge && <p className="mt-3 text-sm leading-relaxed text-ink/80">{challenge}</p>}
+      {cell.description && <p className="mt-3 text-sm leading-relaxed text-ink/80">{cell.description}</p>}
 
       {!player.team_id && !cell.claimed_by_team_id && (
         <p className="mt-3 text-xs text-accent">Join a team before claiming a cell.</p>

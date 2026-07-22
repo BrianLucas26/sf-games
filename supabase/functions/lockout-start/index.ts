@@ -77,10 +77,11 @@ Deno.serve(async (req) => {
     }
 
     const selected = shuffle(LOCKOUT_CHALLENGES).slice(0, cellCount)
-    const cellRows = selected.map((prompt, position) => ({
+    const cellRows = selected.map((challenge, position) => ({
       game_id,
       position,
-      prompt,
+      prompt: challenge.prompt,
+      description: challenge.description ?? null,
     }))
 
     const { error: insertCellsError } = await admin.from('lockout_cells').insert(cellRows)

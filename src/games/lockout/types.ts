@@ -16,6 +16,7 @@ export interface LockoutCellRow {
   game_id: string
   position: number
   prompt: string
+  description: string | null
   claimed_by_team_id: string | null
   claimed_by_player_id: string | null
   claimed_at: string | null
