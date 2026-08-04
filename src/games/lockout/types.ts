@@ -1,6 +1,6 @@
 // Mirrors supabase/migrations/0017_lockout_schema.sql.
 
-export type LockoutBoardSize = 3 | 4 | 5
+export type LockoutBoardSize = 3 | 4 | 5 | 6 | 7
 export type LockoutGameMode = 'bingo' | 'majority'
 export type LockoutTieBreaker = 'tie' | 'sudden_death' | 'first_to_score'
 export type LockoutEndedReason =
@@ -42,7 +42,7 @@ export interface LockoutSettings {
 }
 
 export const DEFAULT_LOCKOUT_SETTINGS: LockoutSettings = {
-  board_size: 4,
+  board_size: 5,
   game_mode: 'bingo',
   tie_breaker: 'sudden_death',
   duration_minutes: 60,

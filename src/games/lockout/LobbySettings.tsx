@@ -47,6 +47,8 @@ export function LobbySettings({ gameId }: { gameId: string }) {
           <option value={3}>3 x 3</option>
           <option value={4}>4 x 4</option>
           <option value={5}>5 x 5</option>
+          <option value={6}>6 x 6</option>
+          <option value={7}>7 x 7</option>
         </Select>
       </Field>
 

@@ -5,14 +5,14 @@ import { getRequestUser } from '../_shared/getRequestUser.ts'
 import { LOCKOUT_CHALLENGES } from '../../../content/lockout-challenges.ts'
 
 interface LockoutSettings {
-  board_size: 3 | 4 | 5
+  board_size: 3 | 4 | 5 | 6 | 7
   game_mode: 'bingo' | 'majority'
   tie_breaker: 'tie' | 'sudden_death' | 'first_to_score'
   duration_minutes: number
 }
 
 const DEFAULTS: LockoutSettings = {
-  board_size: 4,
+  board_size: 5,
   game_mode: 'bingo',
   tie_breaker: 'sudden_death',
   duration_minutes: 60,
@@ -63,8 +63,8 @@ Deno.serve(async (req) => {
     }
 
     const settings: LockoutSettings = { ...DEFAULTS, ...(game.settings ?? {}) }
-    if (![3, 4, 5].includes(settings.board_size)) {
-      return json({ error: 'board_size must be 3, 4, or 5.' }, 400)
+    if (![3, 4, 5, 6, 7].includes(settings.board_size)) {
+      return json({ error: 'board_size must be 3, 4, 5, 6, or 7.' }, 400)
     }
 
     const cellCount = settings.board_size * settings.board_size
