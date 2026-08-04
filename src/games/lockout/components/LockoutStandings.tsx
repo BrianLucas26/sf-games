@@ -10,8 +10,8 @@ interface LockoutStandingsProps {
 }
 
 const ENDED_REASON_LABEL: Record<string, string> = {
-  bingo: 'got a bingo',
-  majority: 'claimed a majority of the board',
+  bingo: 'bingo',
+  majority: 'won by majority',
   time_limit: 'led when time ran out',
   time_limit_tiebreak: 'was first to reach the tied count',
   sudden_death: 'pulled ahead in sudden death',
@@ -47,7 +47,7 @@ export function LockoutStandings({ teams, cells, teamColorById, gameState, gameE
             <>
               <span className="font-medium">{winner.name}</span> wins
               {gameState?.ended_reason && ENDED_REASON_LABEL[gameState.ended_reason]
-                ? ` — ${ENDED_REASON_LABEL[gameState.ended_reason]}.`
+                ? ` - ${ENDED_REASON_LABEL[gameState.ended_reason]}!`
                 : '.'}
             </>
           ) : (
