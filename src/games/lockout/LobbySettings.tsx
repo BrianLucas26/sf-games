@@ -57,6 +57,7 @@ export function LobbySettings({ gameId }: { gameId: string }) {
           value={settings.game_mode}
           onChange={(e) => save({ ...settings, game_mode: e.target.value as LockoutSettings['game_mode'] })}
         >
+          <option value="combo">Combo (bingo or majority, whichever first)</option>
           <option value="bingo">Bingo (line wins)</option>
           <option value="majority">Majority (most cells wins)</option>
         </Select>

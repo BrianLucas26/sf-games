@@ -110,10 +110,12 @@ Deno.serve(async (req) => {
     let won = false
     let endedReason: string | null = null
 
-    if (gameState.game_mode === 'bingo') {
+    if (gameState.game_mode === 'bingo' || gameState.game_mode === 'combo') {
       won = hasBingoLine(myPositions, gameState.board_size)
       endedReason = 'bingo'
-    } else {
+    }
+
+    if (!won && (gameState.game_mode === 'majority' || gameState.game_mode === 'combo')) {
       const threshold = Math.floor(gameState.board_size * gameState.board_size / 2) + 1
       won = myPositions.size >= threshold
       endedReason = 'majority'

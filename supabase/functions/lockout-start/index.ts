@@ -6,14 +6,14 @@ import { LOCKOUT_CHALLENGES } from '../../../content/lockout-challenges.ts'
 
 interface LockoutSettings {
   board_size: 3 | 4 | 5 | 6 | 7
-  game_mode: 'bingo' | 'majority'
+  game_mode: 'bingo' | 'majority' | 'combo'
   tie_breaker: 'tie' | 'sudden_death' | 'first_to_score'
   duration_minutes: number
 }
 
 const DEFAULTS: LockoutSettings = {
   board_size: 5,
-  game_mode: 'bingo',
+  game_mode: 'combo',
   tie_breaker: 'sudden_death',
   duration_minutes: 60,
 }
