@@ -1,0 +1,47 @@
+name: PR checks
+
+# Runs on every PR into main: lint, typecheck+build, and a from-scratch
+# migration-apply check against a disposable local Supabase instance (Docker,
+# spun up by the CLI on the runner). None of this touches the hosted project
+# -- no project-ref/link, no secrets needed. The db-migrations job exists to
+# catch a migration that doesn't apply cleanly (bad ordering, syntax error,
+# a seed migration whose dependency got reordered) across the 30+ hand
+# -written sequential migrations in supabase/migrations/.
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+
+  db-migrations:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Start local Supabase and apply all migrations
+        run: supabase start
+      - run: supabase stop
