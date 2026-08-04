@@ -117,4 +117,58 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
     prompt: 'Time a crosswalk button',
     description: 'PLACEHOLDER: Find a crosswalk button and time how long the wait is.',
   },
+  {
+    prompt: 'Photo with a food truck',
+    description: 'PLACEHOLDER: Take a photo with a food truck.',
+  },
+  { prompt: "Name a shop owner's pet" },
+  {
+    prompt: 'Find a fire hydrant mural',
+    description: 'PLACEHOLDER: Find a fire hydrant that has been painted or decorated.',
+  },
+  {
+    prompt: 'Count flags on one block',
+    description: 'PLACEHOLDER: Count how many flags are flying on a single block.',
+  },
+  { prompt: 'Get a business card from a local' },
+  {
+    prompt: 'Find a hand-me-down bookshelf',
+    description: 'PLACEHOLDER: Find a free "take a book" shelf or box.',
+  },
+  {
+    prompt: 'Photo with a food cart',
+    description: 'PLACEHOLDER: Take a photo with a street food cart.',
+  },
+  { prompt: 'Spot a parklet' },
+  {
+    prompt: 'Find a building older than 1900',
+    description: 'PLACEHOLDER: Find a building constructed before 1900.',
+  },
+  {
+    prompt: "Learn a shopkeeper's favorite season",
+    description: 'PLACEHOLDER: Ask a shopkeeper their favorite season and why.',
+  },
+  { prompt: 'Photo next to a fire escape' },
+  {
+    prompt: 'Find a hidden staircase',
+    description: 'PLACEHOLDER: Find a public staircase tucked between buildings.',
+  },
+  {
+    prompt: 'Team photo with a dog',
+    description: 'PLACEHOLDER: Take a team photo with a friendly dog (with permission).',
+  },
+  { prompt: "Note the oldest car parked nearby" },
+  {
+    prompt: 'Find a chalkboard sign',
+    description: 'PLACEHOLDER: Find a business with a handwritten chalkboard sign.',
+  },
+  {
+    prompt: 'Spot a rooftop garden',
+    description: 'PLACEHOLDER: Find a visible rooftop garden or greenery.',
+  },
+  { prompt: 'Photo at a bus stop' },
+  {
+    prompt: 'Find a community bulletin board',
+    description: 'PLACEHOLDER: Find a public bulletin board and note an upcoming event on it.',
+  },
 ]
