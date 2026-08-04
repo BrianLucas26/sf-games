@@ -5,3 +5,13 @@
 // no real mechanics yet. lockout is live for real play. Remove a slug here
 // once that game is ready for real play.
 export const COMING_SOON_SLUGS = new Set(['turf-war', 'hide-and-seek', 'territory-control'])
+
+// Playable games first (alphabetical), coming-soon games last (alphabetical).
+export function sortComingSoonLast<T extends { slug: string }>(items: T[]): T[] {
+  return [...items].sort((a, b) => {
+    const aComing = COMING_SOON_SLUGS.has(a.slug)
+    const bComing = COMING_SOON_SLUGS.has(b.slug)
+    if (aComing !== bComing) return aComing ? 1 : -1
+    return a.slug.localeCompare(b.slug)
+  })
+}
