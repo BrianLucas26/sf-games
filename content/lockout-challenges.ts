@@ -317,7 +317,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   },
   {
     prompt:'Find a long-standing business',
-    description: 'Find a store that\s been open for more than 25 years.',
+    description: 'Find a store that\'s been open for more than 25 years.',
   },
   {
     prompt:'Use a payphone',
@@ -389,7 +389,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   },
   {
     prompt:'Play an instrument',
-    description: 'Learn and play a song on any instrument that\s not your voice. Must be a non-original song.',
+    description: 'Learn and play a song on any instrument that\'s not your voice. Must be a non-original song.',
   },
   {
     prompt:'Touch grass',
