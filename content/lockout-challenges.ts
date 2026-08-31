@@ -65,8 +65,8 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   },
   // 10
   {
-    prompt:'Take every form of public transit in the city',
-    description: 'Take every form of public transit in the city (bart, metro, bus, streetcar, cable car).',
+    prompt:'Take every form of MUNI',
+    description: 'Take every form of MUNI in the city (metro, bus, streetcar, cable car).',
   },
   // 11
   {
@@ -271,7 +271,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 51
   {
     prompt:'Bowl a strike',
-    description: 'Bowl a strike using anything as your ball and anything as your pins. Must have 10 pins.',
+    description: 'Bowl a strike using anything as your ball and anything as your pins. Must have at least 6 pins.',
   },
   // 52
   {
@@ -402,5 +402,35 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   {
     prompt:'Find an event happening today',
     description: 'Find a sign or flyer for an event happening today.',
+  },
+  // 78
+  {
+    prompt:'Go to 10 different thrift stores',
+    description: 'Go to 10 different thrift stores.',
+  },
+  // 79
+  {
+    prompt:'Find a Cherry-headed Conure',
+    description: 'Photograph the famous parrots of SF, the cherry-headed conures.',
+  },
+  // 80
+  {
+    prompt:'Find a tesla with an anti-elon musk sticker',
+    description: 'Find a tesla with any anti-elon musk marking.',
+  },
+  // 81
+  {
+    prompt:'Take a selfie with someone wearing startup swag',
+    description: 'Take a selfie with a stranger wearing startup swag.',
+  },
+  // 82
+  {
+    prompt:'Land a bottle flip',
+    description: 'Land a bottle flip. You may not practice. If you fail, you must wait 5 minutes between attempts.',
+  },
+  // 83
+  {
+    prompt:'Find a line with more than 10 people',
+    description: 'Find a line with more than 10 people waiting. It cannot be for public transit.',
   }
 ]
