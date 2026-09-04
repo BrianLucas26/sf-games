@@ -40,8 +40,8 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   },
   // 5
   {
-    prompt:'Get a photo with both the golden gate and bay bridge in view',
-    description: 'Get a photo with both the golden gate and bay bridge in view.',
+    prompt:'Get a photo of both bridges',
+    description: 'Get a photo of both the golden gate and the bay bridge.',
   },
   // 6
   {
@@ -55,13 +55,13 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   },
   // 8
   {
-    prompt:'Photograph 3 waymos',
+    prompt:'Photograph 3 waymos in one picture',
     description: 'Photograph 3 waymos in the same picture.',
   },
   // 9
   {
     prompt:'Film a bird for 5 minutes',
-    description: 'Film a bird for 5 minutes without it leaving frame.',
+    description: 'Film a bird for 5 minutes without it leaving frame. If it leaves frame, you must start over.',
   },
   // 10
   {
@@ -71,7 +71,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 11
   {
     prompt:'Bike the wiggle',
-    description: 'Can be any part of the wiggle.',
+    description: 'Must start/end at the panhandle and market st, in either direction.',
   },
   // 12
   {
@@ -86,7 +86,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 14
   {
     prompt:'Pitch a startup to a stranger',
-    description: 'Pitch a startup idea to a stranger and get them to rate it, they must give it a >50% rating.',
+    description: 'Pitch a startup idea to a stranger and ask them if it\'s a good idea, they must say yes.',
   },
   // 15
   {
@@ -100,7 +100,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   },
   // 17
   {
-    prompt:'Play a sport',
+    prompt:'Play a pickup game',
     description: 'Join a pickup game of any sport and score a point.',
   },
   // 18
@@ -126,12 +126,12 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 22
   {
     prompt:'Find 5 different animals',
-    description: 'Take photo of 5 different animals.',
+    description: 'Take photo of 5 different animals. They must be real, living animals.',
   },
   // 23
   {
     prompt:'Find a perfect color match of something you have on you',
-    description: 'Find a perfect color match of something you have (can\'t be black or white).',
+    description: 'Find a perfect color match of something you have (can\'t be black, white, or gray).',
   },
   // 24
   {
@@ -140,13 +140,13 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   },
   // 25
   {
-    prompt:'Do 50 burpees',
-    description: 'Do 50 burpees, only one team member needs to do it.',
+    prompt:'Do 100 burpees',
+    description: 'Do 100 burpees. All team members may contribute, but cannot be done concurrently.',
   },
   // 26
   {
     prompt:'Do a blind taste test',
-    description: 'Have one team member correctly guess 3 different flavors of the same food item while blindfolded. (tea, chips, etc.)',
+    description: 'Have one team member correctly guess 3 different flavors of gummies while blindfolded.',
   },
   // 27
   {
@@ -161,12 +161,12 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 29
   {
     prompt:'Build a raft',
-    description: 'Construct a raft of at least 3 different materials and make it float for atleast 10 seconds.',
+    description: 'Construct a raft of at least 3 different materials and make it float for at least 10 seconds.',
   },
   // 30
   {
     prompt:'Recreate a painting',
-    description: 'Recreate a painting at an SF museum.',
+    description: 'Recreate a painting at an SF museum using any materials you find.',
   },
   // 31
   {
@@ -181,7 +181,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 33
   {
     prompt:'Take 5 different MUNI metro lines',
-    description: 'You must travel atleast 1 stop on 5 different MUNI metro lines.',
+    description: 'You must travel at least 1 stop on 5 different MUNI metro lines.',
   },
   // 34
   {
@@ -226,7 +226,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 42
   {
     prompt:'Climb 100 stairs',
-    description: 'Climb 100 stairs (cannot double-count steps).',
+    description: 'Climb 100 different stairs (cannot double-count steps).',
   },
   // 43
   {
@@ -266,12 +266,12 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 50
   {
     prompt:'Take a twins photo',
-    description: 'Take a photo of two team members dressed identically.',
+    description: 'Recreate a player\'s outfit with articles of clothing you find. Must be real clothes.',
   },
   // 51
   {
     prompt:'Bowl a strike',
-    description: 'Bowl a strike using anything as your ball and anything as your pins. Must have at least 6 pins.',
+    description: 'Bowl a strike using anything as your ball and anything as your pins. Must have 10 pins.',
   },
   // 52
   {
@@ -296,7 +296,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 56
   {
     prompt:'Touch grass',
-    description: 'Just do it.',
+    description: 'Real grass only.',
   },
   // 57
   {
@@ -306,7 +306,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 58
   {
     prompt:'Eat a fortune cookie',
-    description: 'Eat a fortune cookie and read the fortune.',
+    description: 'Eat a fortune cookie.',
   },
   // 59
   {
@@ -345,8 +345,8 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   },
   // 66
   {
-    prompt:'Touch a national landmark',
-    description: 'Touch a landmark in the US National Register of Historic PLaces. https://en.wikipedia.org/wiki/List_of_San_Francisco_Designated_Landmarks#Color_markings_%28highest_noted_listing%29',
+    prompt:'Play hide and seek at a national landmark',
+    description: 'Play hide and seek at a landmark in the US National Register of Historic Places. One team member must generate a random number 2-10 and hides somewhere they think it will take that amount of time for the others to find them. You have a 1 minute buffer on each side. Must regenerate the number on each attempt. https://en.wikipedia.org/wiki/List_of_San_Francisco_Designated_Landmarks#Color_markings_%28highest_noted_listing%29',
   },
   // 67
   {
@@ -411,7 +411,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 79
   {
     prompt:'Find a Cherry-headed Conure',
-    description: 'Photograph the famous parrots of SF, the cherry-headed conures.',
+    description: 'Photograph a cherry-headed conure, the famous parrots of SF.',
   },
   // 80
   {
@@ -431,6 +431,36 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 83
   {
     prompt:'Find a line with more than 10 people',
-    description: 'Find a line with more than 10 people waiting. It cannot be for public transit.',
+    description: 'Find a line with more than 10 people waiting and wait in it. It cannot be for public transit.',
+  },
+  // 84
+  {
+    prompt:'Go to a sports stadium',
+    description: 'Go to a sports stadium. Must have a field/court for a specific sport and built-in seating.',
+  },
+  // 85
+  {
+    prompt:'Use the force at the Yoda fountain',
+    description: 'Knock a fruit off a teammate\'s head from 15 feet away. Must wait 2 minutes between attempts.',
+  },
+  // 86
+  {
+    prompt:'Create a rival museum',
+    description: 'Create a collection of at least 3 items/exhibits and set them it up in a 5x5ft square outside of a real museum. Without prompting them or interacting with them, you must get 5 strangers to "visit" your museum for at least 10 seconds.',
+  },
+  // 87
+  {
+    prompt:'Find a broken clock',
+    description: 'Find any clock that has the wrong time. It cannot be owned by your team.',
+  },
+  // 88
+  {
+    prompt:'Pet 10 dogs',
+    description: 'Pet 10 different dogs.',
+  },
+  // 89
+  {
+    prompt:'Roll an object 100 feet',
+    description: 'Roll any object at least 100 feet in a single throw.',
   }
 ]
