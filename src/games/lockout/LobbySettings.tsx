@@ -83,6 +83,27 @@ export function LobbySettings({ gameId }: { gameId: string }) {
         />
       </Field>
 
+      <Field label="Veto period (minutes)">
+        <TextInput
+          type="number"
+          min={0}
+          value={settings.veto_period_minutes}
+          onChange={(e) => save({ ...settings, veto_period_minutes: Number(e.target.value) })}
+        />
+      </Field>
+
+      <Field label="Vetoes per team">
+        <Select
+          value={settings.veto_limit}
+          onChange={(e) => save({ ...settings, veto_limit: Number(e.target.value) })}
+        >
+          <option value={0}>0 (no vetoes)</option>
+          <option value={1}>1</option>
+          <option value={2}>2</option>
+          <option value={3}>3</option>
+        </Select>
+      </Field>
+
       {saving && <p className="text-xs text-faint">Saving…</p>}
       {error && <p className="text-xs text-danger">{error}</p>}
     </div>

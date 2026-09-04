@@ -9,6 +9,8 @@ interface LockoutSettings {
   game_mode: 'bingo' | 'majority' | 'combo'
   tie_breaker: 'tie' | 'sudden_death' | 'first_to_score'
   duration_minutes: number
+  veto_period_minutes: number
+  veto_limit: number
 }
 
 const DEFAULTS: LockoutSettings = {
@@ -16,6 +18,8 @@ const DEFAULTS: LockoutSettings = {
   game_mode: 'combo',
   tie_breaker: 'sudden_death',
   duration_minutes: 60,
+  veto_period_minutes: 10,
+  veto_limit: 1,
 }
 
 function shuffle<T>(items: T[]): T[] {
@@ -88,7 +92,9 @@ Deno.serve(async (req) => {
     if (insertCellsError) return json({ error: insertCellsError.message }, 500)
 
     const startedAt = new Date()
-    const roundEndsAt = new Date(startedAt.getTime() + settings.duration_minutes * 60_000)
+    const vetoEndsAt = new Date(startedAt.getTime() + settings.veto_period_minutes * 60_000)
+    const roundEndsAt = new Date(vetoEndsAt.getTime() + settings.duration_minutes * 60_000)
+    const hasVetoPeriod = settings.veto_period_minutes > 0
 
     const { error: stateError } = await admin.from('lockout_game_state').insert({
       game_id,
@@ -96,6 +102,9 @@ Deno.serve(async (req) => {
       game_mode: settings.game_mode,
       tie_breaker: settings.tie_breaker,
       round_ends_at: roundEndsAt.toISOString(),
+      veto_ends_at: hasVetoPeriod ? vetoEndsAt.toISOString() : null,
+      vetoes_resolved: !hasVetoPeriod,
+      veto_limit: settings.veto_limit,
     })
     if (stateError) return json({ error: stateError.message }, 500)
 

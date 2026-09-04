@@ -11,16 +11,34 @@ interface LockoutCellDetailProps {
   teams: TeamRow[]
   gameActive: boolean
   onClose: () => void
+  vetoMode?: boolean
+  isVetoed?: boolean
+  vetoLimit?: number
+  vetoedCount?: number
+  onToggleVeto?: (cell: LockoutCellRow) => void
 }
 
-export function LockoutCellDetail({ gameId, cell, player, teams, gameActive, onClose }: LockoutCellDetailProps) {
+export function LockoutCellDetail({
+  gameId,
+  cell,
+  player,
+  teams,
+  gameActive,
+  onClose,
+  vetoMode = false,
+  isVetoed = false,
+  vetoLimit = 0,
+  vetoedCount = 0,
+  onToggleVeto,
+}: LockoutCellDetailProps) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const claimingTeam = teams.find((t) => t.id === cell.claimed_by_team_id)
   const isMyTeamsCell = Boolean(player.team_id && cell.claimed_by_team_id === player.team_id)
-  const claimable = gameActive && !cell.claimed_by_team_id && Boolean(player.team_id)
-  const undoable = gameActive && isMyTeamsCell
+  const claimable = !vetoMode && gameActive && !cell.claimed_by_team_id && Boolean(player.team_id)
+  const undoable = !vetoMode && gameActive && isMyTeamsCell
+  const atVetoLimit = !isVetoed && vetoedCount >= vetoLimit
 
   async function handleClaim() {
     setBusy(true)
@@ -57,12 +75,37 @@ export function LockoutCellDetail({ gameId, cell, player, teams, gameActive, onC
         </button>
       </div>
       <p className="mt-1 text-xs tracking-wide text-muted">
-        {claimingTeam ? `Claimed by ${claimingTeam.name}` : 'Unclaimed'}
+        {vetoMode ? (isVetoed ? 'Queued for veto' : 'Not vetoed') : claimingTeam ? `Claimed by ${claimingTeam.name}` : 'Unclaimed'}
       </p>
+      {cell.replaced_by_veto && <p className="mt-1 text-xs text-danger">Swapped after a veto</p>}
       {cell.description && <p className="mt-3 text-sm leading-relaxed text-ink/80">{cell.description}</p>}
 
-      {!player.team_id && !cell.claimed_by_team_id && (
+      {!player.team_id && !vetoMode && !cell.claimed_by_team_id && (
         <p className="mt-3 text-xs text-accent">Join a team before claiming a cell.</p>
+      )}
+
+      {vetoMode && (
+        <div className="mt-4 space-y-3">
+          {!player.team_id ? (
+            <p className="text-xs text-accent">Join a team before vetoing a challenge.</p>
+          ) : (
+            <>
+              <Button
+                variant={isVetoed ? 'secondary' : 'danger'}
+                onClick={() => onToggleVeto?.(cell)}
+                disabled={atVetoLimit}
+                className="w-full"
+              >
+                {isVetoed ? 'Remove veto' : 'Veto this challenge'}
+              </Button>
+              {atVetoLimit && (
+                <p className="text-xs text-faint">
+                  You've used all {vetoLimit} veto{vetoLimit === 1 ? '' : 'es'} — remove one to pick another.
+                </p>
+              )}
+            </>
+          )}
+        </div>
       )}
 
       {claimable && (

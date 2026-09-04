@@ -40,6 +40,33 @@ Deno.serve(async (req) => {
       return json({ error: 'This game has already started or ended.' }, 400)
     }
 
+    // One anonymous session = one player per game. Re-joining the same game
+    // from the same session (a second tab, a re-submitted join form, the
+    // invite link opened again) renames the existing player instead of
+    // inserting a duplicate row -- duplicates used to break select-team,
+    // whose update-by-auth_user_id then matched more than one row.
+    const { data: existing } = await admin
+      .from('players')
+      .select('id')
+      .eq('game_id', game.id)
+      .eq('auth_user_id', user.id)
+      .order('joined_at')
+      .limit(1)
+      .maybeSingle()
+
+    if (existing) {
+      const { data: renamed, error: renameError } = await admin
+        .from('players')
+        .update({ display_name })
+        .eq('id', existing.id)
+        .select()
+        .single()
+      if (renameError || !renamed) {
+        return json({ error: renameError?.message ?? 'Failed to re-join' }, 500)
+      }
+      return json({ game, player: renamed })
+    }
+
     // Sane ceiling against a join flood targeting one game -- Turnstile
     // raises the cost per join but doesn't hard-cap it, and nothing else
     // bounds how many player rows a single lobby can accumulate.

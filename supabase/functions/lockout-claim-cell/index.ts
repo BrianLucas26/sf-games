@@ -71,10 +71,11 @@ Deno.serve(async (req) => {
 
     const { data: gameState } = await admin
       .from('lockout_game_state')
-      .select('board_size, game_mode, sudden_death_active')
+      .select('board_size, game_mode, sudden_death_active, vetoes_resolved')
       .eq('game_id', game_id)
       .single()
     if (!gameState) return json({ error: 'Game state not found.' }, 500)
+    if (!gameState.vetoes_resolved) return json({ error: 'Veto period is still in progress.' }, 400)
 
     const { data: cell } = await admin
       .from('lockout_cells')

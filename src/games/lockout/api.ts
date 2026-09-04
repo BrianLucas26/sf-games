@@ -25,3 +25,16 @@ export function resolveGame(gameId: string) {
     game_id: gameId,
   })
 }
+
+export function setVetoes(params: { gameId: string; cellIds: string[] }) {
+  return callFunction<{ cellIds: string[] }>('lockout-set-vetoes', {
+    game_id: params.gameId,
+    cell_ids: params.cellIds,
+  })
+}
+
+export function resolveVetoes(gameId: string) {
+  return callFunction<{ replacedCellIds?: string[]; skipped?: boolean }>('lockout-resolve-vetoes', {
+    game_id: gameId,
+  })
+}
