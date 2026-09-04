@@ -462,5 +462,10 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   {
     prompt:'Roll an object 100 feet',
     description: 'Roll any object at least 100 feet in a single throw.',
+  },
+  // 90
+  {
+    prompt:'Relocate water',
+    description: 'Move water from the ocean to the bay or from the bay to the ocean. Use the golden gate bridge as the divider between the two.',
   }
 ]
