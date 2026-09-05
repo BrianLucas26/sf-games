@@ -4,6 +4,7 @@ import { useCurrentPlayer } from '@/hooks/useCurrentPlayer'
 import type { TeamRow } from '@/types/database'
 import { TURF_WAR_CHALLENGES } from '../../../content/turf-war-challenges'
 import { DiscardPicker } from './components/DiscardPicker'
+import { NextSecretTimer } from './components/NextSecretTimer'
 import { OpenZonesList } from './components/OpenZonesList'
 import { PhotoDownloadButton } from './components/PhotoDownloadButton'
 import { RoundTimer } from './components/RoundTimer'
@@ -20,7 +21,8 @@ import type { TurfWarCaptureRow } from './types'
 
 export function Board({ gameId }: { gameId: string }) {
   const { player } = useCurrentPlayer(gameId)
-  const { zones, proposals, gameState, gameStatus, loading } = useTurfWarRealtime(gameId)
+  const { zones, proposals, gameState, gameStatus, loading, refreshGameState } =
+    useTurfWarRealtime(gameId)
   const standings = useTurfWarStandings(gameId, zones)
   const mySecrets = useMySecretZones(gameId, player?.team_id ?? undefined)
   const [teams, setTeams] = useState<TeamRow[]>([])
@@ -55,6 +57,8 @@ export function Board({ gameId }: { gameId: string }) {
   const mySecretZoneIds = useMemo(() => new Set(mySecrets.map((s) => s.zone_id)), [mySecrets])
   const myTeamColor = player?.team_id ? teamColorById[player.team_id] : undefined
 
+  const gameEnded = gameStatus === 'completed'
+
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
@@ -75,7 +79,7 @@ export function Board({ gameId }: { gameId: string }) {
 
       <div className="space-y-4">
         {gameState && (
-          <RoundTimer roundEndsAt={gameState.round_ends_at} gameEnded={gameStatus === 'completed'} />
+          <RoundTimer roundEndsAt={gameState.round_ends_at} gameEnded={gameEnded} />
         )}
 
         <Scoreboard standings={standings} teams={teams} teamColorById={teamColorById} />
@@ -83,7 +87,17 @@ export function Board({ gameId }: { gameId: string }) {
         <OpenZonesList zones={zones} onSelect={setSelectedZone} />
 
         {player?.team_id && (
-          <SecretZonePanel secrets={mySecrets} zones={zones} onSelect={setSelectedZone} />
+          <div className="space-y-1.5">
+            <SecretZonePanel secrets={mySecrets} zones={zones} onSelect={setSelectedZone} />
+            {gameState && (
+              <NextSecretTimer
+                lastTickAt={gameState.last_secret_tick_at}
+                intervalMinutes={gameState.secret_interval_minutes}
+                gameEnded={gameEnded}
+                onDue={refreshGameState}
+              />
+            )}
+          </div>
         )}
 
         {joinCode && <PhotoDownloadButton gameId={gameId} joinCode={joinCode} />}

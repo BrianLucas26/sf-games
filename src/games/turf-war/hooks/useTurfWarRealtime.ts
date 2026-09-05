@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import type { GameStatus } from '@/types/database'
 import type { RegionRow } from '@/types/geo'
@@ -19,15 +19,26 @@ export interface ProposalWithCapture extends TurfWarDiscardProposalRow {
 // patch state locally -- simple, and the tables are small enough that a full
 // refetch is cheap.
 //
-// turf_war_game_state is loaded once and not subscribed: it isn't in the
-// realtime publication (see 0008), and the fields the board reads from it
-// (verification_mode, round_ends_at) are fixed when the round starts.
+// turf_war_game_state is loaded rather than subscribed: it isn't in the
+// realtime publication (see 0008). verification_mode and round_ends_at are
+// fixed when the round starts, but last_secret_tick_at moves every time
+// turf_war_tick() hands out secret neighborhoods -- so refreshGameState is
+// returned for the next-secret countdown to re-read it when one is due.
 export function useTurfWarRealtime(gameId: string) {
   const [zones, setZones] = useState<ZoneWithRegion[]>([])
   const [proposals, setProposals] = useState<ProposalWithCapture[]>([])
   const [gameState, setGameState] = useState<TurfWarGameStateRow | null>(null)
   const [gameStatus, setGameStatus] = useState<GameStatus | null>(null)
   const [loading, setLoading] = useState(true)
+
+  const loadGameState = useCallback(async () => {
+    const { data } = await supabase
+      .from('turf_war_game_state')
+      .select('*')
+      .eq('game_id', gameId)
+      .maybeSingle()
+    if (data) setGameState(data)
+  }, [gameId])
 
   useEffect(() => {
     let cancelled = false
@@ -47,15 +58,6 @@ export function useTurfWarRealtime(gameId: string) {
         .eq('game_id', gameId)
         .eq('status', 'pending')
       if (!cancelled && data) setProposals(data as unknown as ProposalWithCapture[])
-    }
-
-    async function loadGameState() {
-      const { data } = await supabase
-        .from('turf_war_game_state')
-        .select('*')
-        .eq('game_id', gameId)
-        .maybeSingle()
-      if (!cancelled && data) setGameState(data)
     }
 
     async function loadGameStatus() {
@@ -95,7 +97,7 @@ export function useTurfWarRealtime(gameId: string) {
       cancelled = true
       supabase.removeChannel(channel)
     }
-  }, [gameId])
+  }, [gameId, loadGameState])
 
-  return { zones, proposals, gameState, gameStatus, loading }
+  return { zones, proposals, gameState, gameStatus, loading, refreshGameState: loadGameState }
 }
