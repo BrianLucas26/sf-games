@@ -5,17 +5,21 @@ import { getRequestUser } from '../_shared/getRequestUser.ts'
 import { LOCKOUT_CHALLENGES } from '../../../content/lockout-challenges.ts'
 
 interface LockoutSettings {
-  board_size: 3 | 4 | 5
-  game_mode: 'bingo' | 'majority'
+  board_size: 3 | 4 | 5 | 6 | 7
+  game_mode: 'bingo' | 'majority' | 'combo'
   tie_breaker: 'tie' | 'sudden_death' | 'first_to_score'
   duration_minutes: number
+  veto_period_minutes: number
+  veto_limit: number
 }
 
 const DEFAULTS: LockoutSettings = {
-  board_size: 4,
-  game_mode: 'bingo',
+  board_size: 5,
+  game_mode: 'combo',
   tie_breaker: 'sudden_death',
   duration_minutes: 60,
+  veto_period_minutes: 10,
+  veto_limit: 1,
 }
 
 function shuffle<T>(items: T[]): T[] {
@@ -63,8 +67,8 @@ Deno.serve(async (req) => {
     }
 
     const settings: LockoutSettings = { ...DEFAULTS, ...(game.settings ?? {}) }
-    if (![3, 4, 5].includes(settings.board_size)) {
-      return json({ error: 'board_size must be 3, 4, or 5.' }, 400)
+    if (![3, 4, 5, 6, 7].includes(settings.board_size)) {
+      return json({ error: 'board_size must be 3, 4, 5, 6, or 7.' }, 400)
     }
 
     const cellCount = settings.board_size * settings.board_size
@@ -77,17 +81,20 @@ Deno.serve(async (req) => {
     }
 
     const selected = shuffle(LOCKOUT_CHALLENGES).slice(0, cellCount)
-    const cellRows = selected.map((prompt, position) => ({
+    const cellRows = selected.map((challenge, position) => ({
       game_id,
       position,
-      prompt,
+      prompt: challenge.prompt,
+      description: challenge.description ?? null,
     }))
 
     const { error: insertCellsError } = await admin.from('lockout_cells').insert(cellRows)
     if (insertCellsError) return json({ error: insertCellsError.message }, 500)
 
     const startedAt = new Date()
-    const roundEndsAt = new Date(startedAt.getTime() + settings.duration_minutes * 60_000)
+    const vetoEndsAt = new Date(startedAt.getTime() + settings.veto_period_minutes * 60_000)
+    const roundEndsAt = new Date(vetoEndsAt.getTime() + settings.duration_minutes * 60_000)
+    const hasVetoPeriod = settings.veto_period_minutes > 0
 
     const { error: stateError } = await admin.from('lockout_game_state').insert({
       game_id,
@@ -95,6 +102,9 @@ Deno.serve(async (req) => {
       game_mode: settings.game_mode,
       tie_breaker: settings.tie_breaker,
       round_ends_at: roundEndsAt.toISOString(),
+      veto_ends_at: hasVetoPeriod ? vetoEndsAt.toISOString() : null,
+      vetoes_resolved: !hasVetoPeriod,
+      veto_limit: settings.veto_limit,
     })
     if (stateError) return json({ error: stateError.message }, 500)
 

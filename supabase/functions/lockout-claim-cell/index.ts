@@ -71,10 +71,11 @@ Deno.serve(async (req) => {
 
     const { data: gameState } = await admin
       .from('lockout_game_state')
-      .select('board_size, game_mode, sudden_death_active')
+      .select('board_size, game_mode, sudden_death_active, vetoes_resolved')
       .eq('game_id', game_id)
       .single()
     if (!gameState) return json({ error: 'Game state not found.' }, 500)
+    if (!gameState.vetoes_resolved) return json({ error: 'Veto period is still in progress.' }, 400)
 
     const { data: cell } = await admin
       .from('lockout_cells')
@@ -110,10 +111,12 @@ Deno.serve(async (req) => {
     let won = false
     let endedReason: string | null = null
 
-    if (gameState.game_mode === 'bingo') {
+    if (gameState.game_mode === 'bingo' || gameState.game_mode === 'combo') {
       won = hasBingoLine(myPositions, gameState.board_size)
       endedReason = 'bingo'
-    } else {
+    }
+
+    if (!won && (gameState.game_mode === 'majority' || gameState.game_mode === 'combo')) {
       const threshold = Math.floor(gameState.board_size * gameState.board_size / 2) + 1
       won = myPositions.size >= threshold
       endedReason = 'majority'

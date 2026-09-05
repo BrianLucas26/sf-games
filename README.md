@@ -28,7 +28,9 @@ banks, game type names/descriptions, anything similar for future games —
 lives in git under [`content/`](content), not the database:
 `content/turf-war-challenges.ts` (keyed by neighborhood slug),
 `content/lockout-challenges.ts` (a flat pool Lockout samples from at game
-start), and `content/game-types.ts` (name/description per game slug —
+start -- each entry is a short `prompt` shown directly on the grid tile plus
+an optional longer `description` shown when a player taps the cell), and
+`content/game-types.ts` (name/description per game slug —
 `game_types` itself only keeps `slug`/`id`/`is_active`, see Architecture
 above). Edit the file and push to `main`; that's the entire deploy step:
 

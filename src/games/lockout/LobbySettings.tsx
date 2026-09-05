@@ -47,6 +47,8 @@ export function LobbySettings({ gameId }: { gameId: string }) {
           <option value={3}>3 x 3</option>
           <option value={4}>4 x 4</option>
           <option value={5}>5 x 5</option>
+          <option value={6}>6 x 6</option>
+          <option value={7}>7 x 7</option>
         </Select>
       </Field>
 
@@ -55,6 +57,7 @@ export function LobbySettings({ gameId }: { gameId: string }) {
           value={settings.game_mode}
           onChange={(e) => save({ ...settings, game_mode: e.target.value as LockoutSettings['game_mode'] })}
         >
+          <option value="combo">Combo (bingo or majority, whichever first)</option>
           <option value="bingo">Bingo (line wins)</option>
           <option value="majority">Majority (most cells wins)</option>
         </Select>
@@ -78,6 +81,27 @@ export function LobbySettings({ gameId }: { gameId: string }) {
           value={settings.duration_minutes}
           onChange={(e) => save({ ...settings, duration_minutes: Number(e.target.value) })}
         />
+      </Field>
+
+      <Field label="Veto period (minutes)">
+        <TextInput
+          type="number"
+          min={0}
+          value={settings.veto_period_minutes}
+          onChange={(e) => save({ ...settings, veto_period_minutes: Number(e.target.value) })}
+        />
+      </Field>
+
+      <Field label="Vetoes per team">
+        <Select
+          value={settings.veto_limit}
+          onChange={(e) => save({ ...settings, veto_limit: Number(e.target.value) })}
+        >
+          <option value={0}>0 (no vetoes)</option>
+          <option value={1}>1</option>
+          <option value={2}>2</option>
+          <option value={3}>3</option>
+        </Select>
       </Field>
 
       {saving && <p className="text-xs text-faint">Saving…</p>}

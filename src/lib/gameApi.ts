@@ -42,6 +42,14 @@ export function updateGameSettings(params: { gameId: string; settings: object })
   })
 }
 
+export function renameTeam(params: { gameId: string; teamId: string; name: string }) {
+  return callFunction<{ team: TeamRow }>('rename-team', {
+    game_id: params.gameId,
+    team_id: params.teamId,
+    name: params.name,
+  })
+}
+
 export function cancelGame(params: { gameId: string }) {
   return callFunction<{ ok: true }>('cancel-game', { game_id: params.gameId })
 }

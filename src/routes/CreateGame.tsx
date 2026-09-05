@@ -4,7 +4,7 @@ import { GAME_TYPE_CONTENT } from '../../content/game-types'
 import { Button } from '@/components/Button'
 import { Field, TextInput } from '@/components/Field'
 import { Turnstile } from '@/components/Turnstile'
-import { COMING_SOON_SLUGS } from '@/lib/comingSoon'
+import { COMING_SOON_SLUGS, sortComingSoonLast } from '@/lib/comingSoon'
 import { supabase } from '@/lib/supabaseClient'
 import { createGame } from '@/lib/gameApi'
 import { listRegisteredGames } from '@/lib/gameRegistry'
@@ -29,7 +29,7 @@ export default function CreateGame() {
         if (!data) return
         // Only offer games this build actually has a registered module for.
         const registered = new Set(listRegisteredGames().map((g) => g.slug))
-        setGameTypes(data.filter((gt) => registered.has(gt.slug)))
+        setGameTypes(sortComingSoonLast(data.filter((gt) => registered.has(gt.slug))))
       })
   }, [])
 

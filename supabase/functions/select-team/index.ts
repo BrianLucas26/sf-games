@@ -34,11 +34,24 @@ Deno.serve(async (req) => {
       .maybeSingle()
     if (!team) return json({ error: 'That team is not part of this game.' }, 404)
 
+    // Resolve to one specific player row first, then update by primary key.
+    // Updating by auth_user_id directly would match every row for that
+    // session, and .single() over the result errored out whenever a game
+    // still holds duplicate player rows from before join-game deduped them.
+    const { data: existing } = await admin
+      .from('players')
+      .select('id')
+      .eq('game_id', game_id)
+      .eq('auth_user_id', user.id)
+      .order('joined_at')
+      .limit(1)
+      .maybeSingle()
+    if (!existing) return json({ error: 'You are not a player in this game.' }, 404)
+
     const { data: player, error } = await admin
       .from('players')
       .update({ team_id })
-      .eq('game_id', game_id)
-      .eq('auth_user_id', user.id)
+      .eq('id', existing.id)
       .select()
       .single()
     if (error || !player) return json({ error: error?.message ?? 'You are not a player in this game.' }, 404)

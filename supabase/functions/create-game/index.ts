@@ -86,8 +86,9 @@ Deno.serve(async (req) => {
     const names = team_names?.length ? team_names : ['Team A', 'Team B']
     const { data: teams, error: teamsError } = await admin
       .from('teams')
-      .insert(names.map((name) => ({ game_id: game.id, name })))
+      .insert(names.map((name, position) => ({ game_id: game.id, name, position })))
       .select()
+      .order('position')
     if (teamsError) return json({ error: teamsError.message }, 500)
 
     const { data: player, error: playerError } = await admin

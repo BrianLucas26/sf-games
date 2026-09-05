@@ -16,12 +16,17 @@ export async function callFunction<T>(name: string, body: Record<string, unknown
   if (error) {
     const context = (error as { context?: Response }).context
     if (context) {
+      // Parse inside the try, but throw outside it -- a `throw` in the try
+      // would be swallowed by this very catch, masking every real
+      // edge-function error as the generic "non-2xx status code".
+      let message: string | null = null
       try {
         const parsed = (await context.json()) as ErrorBody
-        if (parsed?.error) throw new Error(parsed.error)
+        message = parsed?.error ?? null
       } catch {
-        // fall through to the generic error below
+        // Body wasn't JSON -- fall through to the generic error below.
       }
+      if (message) throw new Error(message)
     }
     throw error
   }

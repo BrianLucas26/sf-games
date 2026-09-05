@@ -5,7 +5,7 @@ import { Button } from '@/components/Button'
 import { supabase } from '@/lib/supabaseClient'
 import { useCurrentPlayer } from '@/hooks/useCurrentPlayer'
 import { getGameModule } from '@/lib/gameRegistry'
-import { cancelGame, selectTeam } from '@/lib/gameApi'
+import { cancelGame, renameTeam, selectTeam } from '@/lib/gameApi'
 import type { GameRow, PlayerRow, TeamRow } from '@/types/database'
 
 interface GameWithType extends GameRow {
@@ -22,6 +22,9 @@ export default function Lobby() {
   const [starting, setStarting] = useState(false)
   const [cancelling, setCancelling] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [editingTeamId, setEditingTeamId] = useState<string | null>(null)
+  const [draftName, setDraftName] = useState('')
+  const [renaming, setRenaming] = useState(false)
 
   const load = useCallback(() => {
     supabase
@@ -42,7 +45,7 @@ export default function Lobby() {
       .from('teams')
       .select('*')
       .eq('game_id', gameId)
-      .order('created_at')
+      .order('position')
       .then(({ data }) => data && setTeams(data))
     supabase
       .from('players')
@@ -88,6 +91,27 @@ export default function Lobby() {
       load()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to select team.')
+    }
+  }
+
+  function startEditingTeam(team: TeamRow) {
+    setEditingTeamId(team.id)
+    setDraftName(team.name)
+    setError(null)
+  }
+
+  async function handleRenameTeam(teamId: string) {
+    if (!draftName.trim()) return
+    setRenaming(true)
+    setError(null)
+    try {
+      await renameTeam({ gameId, teamId, name: draftName.trim() })
+      setEditingTeamId(null)
+      load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to rename team.')
+    } finally {
+      setRenaming(false)
     }
   }
 
@@ -138,8 +162,76 @@ export default function Lobby() {
       <div className="grid gap-4 sm:grid-cols-2">
         {teams.map((team) => (
           <div key={team.id} className="rounded-xl border border-border bg-surface p-4">
-            <div className="flex items-center justify-between">
-              <h2 className="font-display font-medium text-ink">{team.name}</h2>
+            <div className="flex items-center justify-between gap-2">
+              {editingTeamId === team.id ? (
+                <div className="flex flex-1 items-center gap-1">
+                  <input
+                    autoFocus
+                    value={draftName}
+                    onChange={(e) => setDraftName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleRenameTeam(team.id)
+                      if (e.key === 'Escape') setEditingTeamId(null)
+                    }}
+                    maxLength={30}
+                    className="w-full rounded-md border border-border-strong bg-canvas px-2 py-1 font-display text-sm text-ink focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/40"
+                  />
+                  <button
+                    onClick={() => handleRenameTeam(team.id)}
+                    disabled={renaming || !draftName.trim()}
+                    aria-label="Save team name"
+                    title="Save"
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted transition-colors hover:bg-surface-hover hover:text-ink disabled:opacity-40"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path
+                        d="M4 12.5 9.5 18 20 6"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => setEditingTeamId(null)}
+                    disabled={renaming}
+                    aria-label="Cancel rename"
+                    title="Cancel"
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted transition-colors hover:bg-surface-hover hover:text-ink"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path
+                        d="M6 6l12 12M18 6 6 18"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5">
+                  <h2 className="font-display font-medium text-ink">{team.name}</h2>
+                  {isHost && (
+                    <button
+                      onClick={() => startEditingTeam(team)}
+                      aria-label={`Rename ${team.name}`}
+                      title="Rename team"
+                      className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-faint transition-colors hover:bg-surface-hover hover:text-ink"
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                          d="M15.5 4.5 19.5 8.5 8 20H4v-4L15.5 4.5Z"
+                          stroke="currentColor"
+                          strokeWidth="1.6"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              )}
               <button
                 onClick={() => handleSelectTeam(team.id)}
                 className="rounded-md border border-border-strong px-2.5 py-1 text-xs font-medium text-muted transition-colors hover:border-accent/50 hover:text-ink"

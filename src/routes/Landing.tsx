@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { GAME_TYPE_CONTENT } from '../../content/game-types'
 import { buttonClasses } from '@/components/Button'
-import { COMING_SOON_SLUGS } from '@/lib/comingSoon'
+import { COMING_SOON_SLUGS, sortComingSoonLast } from '@/lib/comingSoon'
 import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient'
 import type { GameTypeRow } from '@/types/database'
 
@@ -37,7 +37,7 @@ export default function Landing() {
           setState({ status: 'error', message: error.message })
           return
         }
-        setState({ status: 'ready', gameTypes: data ?? [] })
+        setState({ status: 'ready', gameTypes: sortComingSoonLast(data ?? []) })
       })
 
     return () => {

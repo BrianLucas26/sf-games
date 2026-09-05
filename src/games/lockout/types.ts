@@ -1,7 +1,7 @@
 // Mirrors supabase/migrations/0017_lockout_schema.sql.
 
-export type LockoutBoardSize = 3 | 4 | 5
-export type LockoutGameMode = 'bingo' | 'majority'
+export type LockoutBoardSize = 3 | 4 | 5 | 6 | 7
+export type LockoutGameMode = 'bingo' | 'majority' | 'combo'
 export type LockoutTieBreaker = 'tie' | 'sudden_death' | 'first_to_score'
 export type LockoutEndedReason =
   | 'bingo'
@@ -16,9 +16,11 @@ export interface LockoutCellRow {
   game_id: string
   position: number
   prompt: string
+  description: string | null
   claimed_by_team_id: string | null
   claimed_by_player_id: string | null
   claimed_at: string | null
+  replaced_by_veto: boolean
 }
 
 export interface LockoutGameStateRow {
@@ -30,6 +32,9 @@ export interface LockoutGameStateRow {
   sudden_death_active: boolean
   winner_team_id: string | null
   ended_reason: LockoutEndedReason | null
+  veto_ends_at: string | null
+  vetoes_resolved: boolean
+  veto_limit: number
 }
 
 // The shape stored in games.settings when game_type = 'lockout'.
@@ -38,11 +43,15 @@ export interface LockoutSettings {
   game_mode: LockoutGameMode
   tie_breaker: LockoutTieBreaker
   duration_minutes: number
+  veto_period_minutes: number
+  veto_limit: number
 }
 
 export const DEFAULT_LOCKOUT_SETTINGS: LockoutSettings = {
-  board_size: 4,
-  game_mode: 'bingo',
+  board_size: 5,
+  game_mode: 'combo',
   tie_breaker: 'sudden_death',
   duration_minutes: 60,
+  veto_period_minutes: 10,
+  veto_limit: 1,
 }
