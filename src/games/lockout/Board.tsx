@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
+import { secondsUntil } from '@/lib/time'
 import { useCurrentPlayer } from '@/hooks/useCurrentPlayer'
 import { TEAM_COLORS } from '@/lib/teamColors'
 import type { TeamRow } from '@/types/database'
@@ -10,10 +11,6 @@ import { LockoutStandings } from './components/LockoutStandings'
 import { LockoutVetoPanel } from './components/LockoutVetoPanel'
 import { useLockoutRealtime } from './hooks/useLockoutRealtime'
 import type { LockoutCellRow } from './types'
-
-function secondsUntil(iso: string) {
-  return Math.max(0, Math.round((new Date(iso).getTime() - Date.now()) / 1000))
-}
 
 function formatDuration(totalSeconds: number) {
   const m = Math.floor(totalSeconds / 60)

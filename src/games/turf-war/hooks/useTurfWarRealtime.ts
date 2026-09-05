@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
+import type { GameStatus } from '@/types/database'
 import type { RegionRow } from '@/types/geo'
-import type { TurfWarDiscardProposalRow, TurfWarZoneRow } from '../types'
+import type { TurfWarDiscardProposalRow, TurfWarGameStateRow, TurfWarZoneRow } from '../types'
 
 export interface ZoneWithRegion extends TurfWarZoneRow {
   region: RegionRow
@@ -11,13 +12,21 @@ export interface ProposalWithCapture extends TurfWarDiscardProposalRow {
   capture: { team_id: string; zone_id: string }
 }
 
-// Subscribes to the two tables the board needs live: zone status/ownership
-// (for the map + scoreboard) and pending discard proposals (for the veto
-// banner). Both refetch on any change rather than patch state locally --
-// simple, and the tables are small enough that a full refetch is cheap.
+// Subscribes to the three things the board needs live: zone status/ownership
+// (for the map + scoreboard), pending discard proposals (for the veto banner),
+// and the game's own status (so the board flips to "round over" the moment
+// turf_war_tick() completes the game). These refetch on any change rather than
+// patch state locally -- simple, and the tables are small enough that a full
+// refetch is cheap.
+//
+// turf_war_game_state is loaded once and not subscribed: it isn't in the
+// realtime publication (see 0008), and the fields the board reads from it
+// (verification_mode, round_ends_at) are fixed when the round starts.
 export function useTurfWarRealtime(gameId: string) {
   const [zones, setZones] = useState<ZoneWithRegion[]>([])
   const [proposals, setProposals] = useState<ProposalWithCapture[]>([])
+  const [gameState, setGameState] = useState<TurfWarGameStateRow | null>(null)
+  const [gameStatus, setGameStatus] = useState<GameStatus | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -40,7 +49,21 @@ export function useTurfWarRealtime(gameId: string) {
       if (!cancelled && data) setProposals(data as unknown as ProposalWithCapture[])
     }
 
-    Promise.all([loadZones(), loadProposals()]).then(() => {
+    async function loadGameState() {
+      const { data } = await supabase
+        .from('turf_war_game_state')
+        .select('*')
+        .eq('game_id', gameId)
+        .maybeSingle()
+      if (!cancelled && data) setGameState(data)
+    }
+
+    async function loadGameStatus() {
+      const { data } = await supabase.from('games').select('status').eq('id', gameId).maybeSingle()
+      if (!cancelled && data) setGameStatus(data.status)
+    }
+
+    Promise.all([loadZones(), loadProposals(), loadGameState(), loadGameStatus()]).then(() => {
       if (!cancelled) setLoading(false)
     })
 
@@ -61,6 +84,11 @@ export function useTurfWarRealtime(gameId: string) {
         },
         loadProposals,
       )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'games', filter: `id=eq.${gameId}` },
+        loadGameStatus,
+      )
       .subscribe()
 
     return () => {
@@ -69,5 +97,5 @@ export function useTurfWarRealtime(gameId: string) {
     }
   }, [gameId])
 
-  return { zones, proposals, loading }
+  return { zones, proposals, gameState, gameStatus, loading }
 }
