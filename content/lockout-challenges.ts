@@ -467,5 +467,15 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   {
     prompt:'Relocate water',
     description: 'Move water from the ocean to the bay or from the bay to the ocean. Use the golden gate bridge as the divider between the two.',
+  },
+  // 91
+  {
+    prompt:'Go through a tunnel',
+    description: 'Must fully complete the tunnel through both ends.',
+  },
+  // 92
+  {
+    prompt:'Go over a bridge',
+    description: 'Must actually be a bridge that spans a road or body of water.',
   }
 ]
