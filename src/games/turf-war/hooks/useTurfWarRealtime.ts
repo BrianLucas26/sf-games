@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
+import { useResumeEpoch } from '@/hooks/useResumeEpoch'
 import type { RegionRow } from '@/types/geo'
 import type { TurfWarDiscardProposalRow, TurfWarZoneRow } from '../types'
 
@@ -19,6 +20,7 @@ export function useTurfWarRealtime(gameId: string) {
   const [zones, setZones] = useState<ZoneWithRegion[]>([])
   const [proposals, setProposals] = useState<ProposalWithCapture[]>([])
   const [loading, setLoading] = useState(true)
+  const resumeEpoch = useResumeEpoch()
 
   useEffect(() => {
     let cancelled = false
@@ -40,10 +42,6 @@ export function useTurfWarRealtime(gameId: string) {
       if (!cancelled && data) setProposals(data as unknown as ProposalWithCapture[])
     }
 
-    Promise.all([loadZones(), loadProposals()]).then(() => {
-      if (!cancelled) setLoading(false)
-    })
-
     const channel = supabase
       .channel(`turf-war-board-${gameId}`)
       .on(
@@ -61,13 +59,22 @@ export function useTurfWarRealtime(gameId: string) {
         },
         loadProposals,
       )
-      .subscribe()
+      .subscribe((status) => {
+        if (status !== 'SUBSCRIBED') return
+        // Fires on the first join AND on every automatic rejoin, so this is
+        // both the initial load and the reconnect resync -- postgres_changes
+        // never replays what was missed while the socket was down. See
+        // useResumeEpoch for why the channel is rebuilt on foreground.
+        Promise.all([loadZones(), loadProposals()]).then(() => {
+          if (!cancelled) setLoading(false)
+        })
+      })
 
     return () => {
       cancelled = true
       supabase.removeChannel(channel)
     }
-  }, [gameId])
+  }, [gameId, resumeEpoch])
 
   return { zones, proposals, loading }
 }
