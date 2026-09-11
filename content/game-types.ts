@@ -21,7 +21,8 @@ export const GAME_TYPE_CONTENT: Record<string, GameTypeContent> = {
   },
   'hide-and-seek': {
     name: 'Hide and Seek',
-    description: 'Hide and seek across San Francisco.',
+    description:
+      'Teams take turns hiding across SF -- seekers ask questions to close in, hiders curse them to slow them down. Longest hide wins.',
   },
   'territory-control': {
     name: 'Territory Control',
