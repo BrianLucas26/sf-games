@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { secondsUntil } from '@/lib/time'
 import type { PlayerRow } from '@/types/database'
 import { resolveDiscard, vetoDiscard } from '../api'
 import type { ProposalWithCapture, ZoneWithRegion } from '../hooks/useTurfWarRealtime'
@@ -7,10 +8,6 @@ interface VetoBannerProps {
   proposal: ProposalWithCapture
   player: PlayerRow | null
   zones: ZoneWithRegion[]
-}
-
-function secondsUntil(iso: string) {
-  return Math.max(0, Math.round((new Date(iso).getTime() - Date.now()) / 1000))
 }
 
 export function VetoBanner({ proposal, player, zones }: VetoBannerProps) {
