@@ -10,7 +10,8 @@ const BOUNDS: [LngLat, LngLat] = [
   [-124.5, 36.8],
   [-120.5, 39.0],
 ]
-const HALF_PLANE_REACH_DEG = 3
+// In Web Mercator units -- about 3.6 degrees of longitude.
+const HALF_PLANE_REACH = 0.01
 const EARTH_RADIUS_KM = 6371
 const CIRCLE_STEPS = 72
 
@@ -58,28 +59,38 @@ export function circleRing(center: LngLat, radiusKm: number): LngLat[] {
   return ring
 }
 
+// Web Mercator (1 = the world's width), y pointing north. Mapbox draws line
+// and polygon edges straight in this space, not in raw lng/lat -- so a
+// shading edge computed in lng/lat and stretched across the map bows away
+// from the points the seeker actually tapped.
+function toMercator([lng, lat]: LngLat): [number, number] {
+  const phi = (lat * Math.PI) / 180
+  return [lng / 360, Math.log(Math.tan(Math.PI / 4 + phi / 2)) / (2 * Math.PI)]
+}
+
+function fromMercator(x: number, y: number): LngLat {
+  return [x * 360, ((2 * Math.atan(Math.exp(y * 2 * Math.PI)) - Math.PI / 2) * 180) / Math.PI]
+}
+
 // The shaded side of the line through a -> b. "left" is left of the direction
-// of travel from a to b. Computed in a locally-scaled plane (longitude
-// shrunk by cos(latitude)) so the shading edge is actually perpendicular-
-// looking on the map instead of skewed.
+// of travel from a to b. Computed in Web Mercator so the drawn edge passes
+// exactly through a and b at any zoom.
 function halfPlane(a: LngLat, b: LngLat, side: 'left' | 'right'): { polygon: LngLat[]; line: LngLat[] } {
-  const scale = Math.cos((a[1] * Math.PI) / 180)
-  const ax = a[0] * scale
-  const bx = b[0] * scale
+  const [ax, ay] = toMercator(a)
+  const [bx, by] = toMercator(b)
   let dx = bx - ax
-  let dy = b[1] - a[1]
+  let dy = by - ay
   const len = Math.hypot(dx, dy) || 1
   dx /= len
   dy /= len
   const sign = side === 'left' ? 1 : -1
   const nx = -dy * sign
   const ny = dx * sign
-  const r = HALF_PLANE_REACH_DEG
-  const toLngLat = (x: number, y: number): LngLat => [x / scale, y]
-  const p1 = toLngLat(ax - dx * r, a[1] - dy * r)
-  const p2 = toLngLat(ax + dx * r, a[1] + dy * r)
-  const p3 = toLngLat(ax + dx * r + nx * r, a[1] + dy * r + ny * r)
-  const p4 = toLngLat(ax - dx * r + nx * r, a[1] - dy * r + ny * r)
+  const r = HALF_PLANE_REACH
+  const p1 = fromMercator(ax - dx * r, ay - dy * r)
+  const p2 = fromMercator(ax + dx * r, ay + dy * r)
+  const p3 = fromMercator(ax + dx * r + nx * r, ay + dy * r + ny * r)
+  const p4 = fromMercator(ax - dx * r + nx * r, ay - dy * r + ny * r)
   return { polygon: [p1, p2, p3, p4, p1], line: [p1, p2] }
 }
 
