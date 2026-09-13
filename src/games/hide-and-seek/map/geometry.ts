@@ -161,7 +161,9 @@ export function describeMark(mark: MarkData): string {
       return `Ruled out ${mark.data.shade} ${mark.data.radius_km} km circle`
     case 'freehand':
       return 'Drawing'
-    case 'region':
-      return `Crossed out: ${mark.data.name}`
+    case 'region': {
+      const { names, region_set } = mark.data
+      return names.length === 1 ? `Crossed out: ${names[0]}` : `Crossed out ${names.length} ${region_set}`
+    }
   }
 }

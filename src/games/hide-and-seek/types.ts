@@ -117,7 +117,8 @@ export type MarkData =
   | { kind: 'half_plane'; data: { a: LngLat; b: LngLat; side: 'left' | 'right' } }
   | { kind: 'circle'; data: { center: LngLat; radius_km: number; shade: 'inside' | 'outside' } }
   | { kind: 'freehand'; data: { points: LngLat[] } }
-  | { kind: 'region'; data: { region_set: RegionSetKey; region_id: string; name: string } }
+  // One mark per cross-out action (possibly many regions), so Undo reverts it whole.
+  | { kind: 'region'; data: { region_set: RegionSetKey; region_ids: string[]; names: string[] } }
 
 export type MarkKind = MarkData['kind']
 

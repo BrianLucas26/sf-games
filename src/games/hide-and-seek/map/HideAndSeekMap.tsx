@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import mapboxgl from 'mapbox-gl'
+import mapboxgl, { type ExpressionSpecification } from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import type { RegionRow } from '@/types/geo'
 import type { HideAndSeekMapMarkRow, LngLat, MarkData, RegionSetKey } from '../types'
@@ -34,6 +34,8 @@ export interface HideAndSeekMapProps {
   showNeighborhoods: boolean
   showDistricts: boolean
   marks: HideAndSeekMapMarkRow[]
+  // Regions picked with the cross-out tool but not saved yet.
+  selectedRegionIds?: string[]
   draft?: MarkData | null
   // Tapped points of an in-progress shape, drawn as dots.
   draftPoints?: LngLat[]
@@ -78,6 +80,20 @@ function setData(map: mapboxgl.Map, sourceId: string, data: GeoJSON.FeatureColle
 
 const EMPTY = collection([])
 const NO_POINTS: LngLat[] = []
+const NO_IDS: string[] = []
+
+// Selected (cross-out tool) and crossed-out regions stay tinted even while
+// their overlay is hidden; only the faint base tint follows the Show toggle.
+function regionFillOpacity(overlayVisible: boolean): ExpressionSpecification {
+  return [
+    'case',
+    ['boolean', ['feature-state', 'selected'], false],
+    0.45,
+    ['boolean', ['feature-state', 'excluded'], false],
+    0.55,
+    overlayVisible ? 0.04 : 0,
+  ]
+}
 
 // Hide and Seek's map: toggleable neighborhood/district overlays, the
 // seekers' shared markup (shaded half-planes and circles, freehand strokes,
@@ -92,6 +108,7 @@ export function HideAndSeekMap({
   showNeighborhoods,
   showDistricts,
   marks,
+  selectedRegionIds = NO_IDS,
   draft = null,
   draftPoints = NO_POINTS,
   askPoints = [],
@@ -149,10 +166,16 @@ export function HideAndSeekMap({
           id: `${set}-fill`,
           type: 'fill',
           source: set,
-          layout: { visibility: 'none' },
           paint: {
-            'fill-color': ['case', ['boolean', ['feature-state', 'excluded'], false], '#000000', color],
-            'fill-opacity': ['case', ['boolean', ['feature-state', 'excluded'], false], 0.6, 0.04],
+            'fill-color': [
+              'case',
+              ['boolean', ['feature-state', 'selected'], false],
+              DRAFT_COLOR,
+              ['boolean', ['feature-state', 'excluded'], false],
+              '#000000',
+              color,
+            ],
+            'fill-opacity': regionFillOpacity(false),
           },
         })
       }
@@ -311,16 +334,18 @@ export function HideAndSeekMap({
     if (!map || !mapLoaded) return
     const visible = { neighborhoods: showNeighborhoods, districts: showDistricts }
     for (const set of REGION_SETS) {
-      for (const layer of ['fill', 'outline', 'label']) {
+      for (const layer of ['outline', 'label']) {
         map.setLayoutProperty(`${set}-${layer}`, 'visibility', visible[set] ? 'visible' : 'none')
       }
+      map.setPaintProperty(`${set}-fill`, 'fill-opacity', regionFillOpacity(visible[set]))
     }
   }, [showNeighborhoods, showDistricts, mapLoaded])
 
   const excludedRegionIds = useMemo(
-    () => new Set(marks.flatMap((m) => (m.kind === 'region' ? [m.data.region_id] : []))),
+    () => new Set(marks.flatMap((m) => (m.kind === 'region' ? m.data.region_ids : []))),
     [marks],
   )
+  const selectedIds = useMemo(() => new Set(selectedRegionIds), [selectedRegionIds])
 
   useEffect(() => {
     const map = mapRef.current
@@ -328,10 +353,13 @@ export function HideAndSeekMap({
     setData(map, 'marks', collection(marks.flatMap((m) => markToFeatures(m.id, m))))
     for (const set of REGION_SETS) {
       for (const region of set === 'neighborhoods' ? neighborhoods : districts) {
-        map.setFeatureState({ source: set, id: region.id }, { excluded: excludedRegionIds.has(region.id) })
+        map.setFeatureState(
+          { source: set, id: region.id },
+          { excluded: excludedRegionIds.has(region.id), selected: selectedIds.has(region.id) },
+        )
       }
     }
-  }, [marks, excludedRegionIds, neighborhoods, districts, mapLoaded])
+  }, [marks, excludedRegionIds, selectedIds, neighborhoods, districts, mapLoaded])
 
   useEffect(() => {
     const map = mapRef.current

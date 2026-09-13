@@ -17,7 +17,7 @@ const TOOLS: { id: Tool; label: string; hint: string }[] = [
   { id: 'ew', label: 'E/W line', hint: 'Tap the map (or use your location) to place a vertical line, then pick which side to rule out.' },
   { id: 'line', label: 'Line', hint: 'Tap two points to draw a line, then pick which side to rule out.' },
   { id: 'circle', label: 'Circle', hint: 'Tap the center (or use your location), set a radius, then rule out inside or outside.' },
-  { id: 'region', label: 'Cross out', hint: 'Tap a region to cross it out. Tap it again to bring it back.' },
+  { id: 'region', label: 'Cross out', hint: 'Tap regions to select them, then cross out the selection -- or everything except it.' },
   { id: 'pen', label: 'Pen', hint: 'Drag to draw. Pinch with two fingers to zoom.' },
 ]
 
@@ -78,6 +78,7 @@ export function MapPanel({ gameId, regions, marks, askPoints, editable, onMarksC
   const [circleShade, setCircleShade] = useState<'inside' | 'outside'>('outside')
   const [radiusKm, setRadiusKm] = useState('1')
   const [regionSet, setRegionSet] = useState<RegionSetKey>('neighborhoods')
+  const [selectedRegionIds, setSelectedRegionIds] = useState<string[]>([])
   const [busy, setBusy] = useState(false)
   const [locating, setLocating] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -121,8 +122,33 @@ export function MapPanel({ gameId, regions, marks, askPoints, editable, onMarksC
     setTool(next)
     setPoint(null)
     setPoint2(null)
+    setSelectedRegionIds([])
     setError(null)
-    if (next === 'region' && !overlays[regionSet]) toggleOverlay(regionSet)
+  }
+
+  const crossedOutIds = useMemo(
+    () => new Set(marks.flatMap((m) => (m.kind === 'region' ? m.data.region_ids : []))),
+    [marks],
+  )
+
+  // Saves one mark for the whole action, so Undo brings it all back at once.
+  function crossOut(exceptSelected: boolean) {
+    const selected = new Set(selectedRegionIds)
+    const targets = regions[regionSet].filter((r) => selected.has(r.id) !== exceptSelected && !crossedOutIds.has(r.id))
+    if (targets.length === 0) {
+      setError('Those are already crossed out.')
+      return
+    }
+    run(async () => {
+      await addMapMark({
+        gameId,
+        mark: {
+          kind: 'region',
+          data: { region_set: regionSet, region_ids: targets.map((r) => r.id), names: targets.map((r) => r.name) },
+        },
+      })
+      setSelectedRegionIds([])
+    })
   }
 
   async function run(action: () => Promise<unknown>) {
@@ -159,14 +185,9 @@ export function MapPanel({ gameId, regions, marks, askPoints, editable, onMarksC
           setError(`Tap inside one of the ${REGION_SET_LABELS[regionSet].toLowerCase()}.`)
           return
         }
-        const existing = marks.find((m) => m.kind === 'region' && m.data.region_id === region.id)
-        run(() =>
-          existing
-            ? deleteMapMark({ gameId, markId: existing.id })
-            : addMapMark({
-                gameId,
-                mark: { kind: 'region', data: { region_set: regionSet, region_id: region.id, name: region.name } },
-              }),
+        setError(null)
+        setSelectedRegionIds((ids) =>
+          ids.includes(region.id) ? ids.filter((id) => id !== region.id) : [...ids, region.id],
         )
         return
       }
@@ -257,12 +278,37 @@ export function MapPanel({ gameId, regions, marks, askPoints, editable, onMarksC
                   color={REGION_SET_COLORS[set]}
                   onClick={() => {
                     setRegionSet(set)
-                    if (!overlays[set]) toggleOverlay(set)
+                    setSelectedRegionIds([])
                   }}
                 >
                   {REGION_SET_LABELS[set]}
                 </Pill>
               ))}
+            </div>
+          )}
+
+          {activeTool === 'region' && (
+            <div className="flex flex-wrap gap-2">
+              <Button
+                className="px-3 py-1.5 text-xs"
+                disabled={busy || selectedRegionIds.length === 0}
+                onClick={() => crossOut(false)}
+              >
+                Cross out selected ({selectedRegionIds.length})
+              </Button>
+              <Button
+                variant="secondary"
+                className="px-3 py-1.5 text-xs"
+                disabled={busy || selectedRegionIds.length === 0}
+                onClick={() => crossOut(true)}
+              >
+                Cross out all except selected
+              </Button>
+              {selectedRegionIds.length > 0 && (
+                <Button variant="ghost" className="px-3 py-1.5 text-xs" onClick={() => setSelectedRegionIds([])}>
+                  Clear selection
+                </Button>
+              )}
             </div>
           )}
 
@@ -343,9 +389,12 @@ export function MapPanel({ gameId, regions, marks, askPoints, editable, onMarksC
       <HideAndSeekMap
         neighborhoods={regions.neighborhoods}
         districts={regions.districts}
-        showNeighborhoods={overlays.neighborhoods}
-        showDistricts={overlays.districts}
+        // The cross-out tool shows its region set only while it's in use;
+        // the Show toggles stay the player's own setting.
+        showNeighborhoods={overlays.neighborhoods || (activeTool === 'region' && regionSet === 'neighborhoods')}
+        showDistricts={overlays.districts || (activeTool === 'region' && regionSet === 'districts')}
         marks={marks}
+        selectedRegionIds={activeTool === 'region' ? selectedRegionIds : undefined}
         draft={draft}
         draftPoints={draftPoints}
         askPoints={askPoints}

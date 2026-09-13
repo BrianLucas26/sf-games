@@ -15,6 +15,7 @@ type MarkOp = 'add' | 'delete' | 'clear'
 type MarkKind = 'half_plane' | 'circle' | 'freehand' | 'region'
 
 const MAX_FREEHAND_POINTS = 2000
+const MAX_REGIONS = 500
 
 function isLngLat(value: unknown): value is [number, number] {
   return (
@@ -44,10 +45,16 @@ function validateMarkData(kind: MarkKind, data: Record<string, unknown>): Record
       if (!Array.isArray(data.points) || data.points.length < 2 || data.points.length > MAX_FREEHAND_POINTS) return null
       if (!data.points.every(isLngLat)) return null
       return { points: data.points }
-    case 'region':
+    case 'region': {
+      // One mark per cross-out action: every region it covers, with names.
       if (data.region_set !== 'neighborhoods' && data.region_set !== 'districts') return null
-      if (typeof data.region_id !== 'string' || typeof data.name !== 'string') return null
-      return { region_set: data.region_set, region_id: data.region_id, name: data.name.slice(0, 100) }
+      const ids = data.region_ids
+      const names = data.names
+      if (!Array.isArray(ids) || !Array.isArray(names)) return null
+      if (ids.length === 0 || ids.length > MAX_REGIONS || names.length !== ids.length) return null
+      if (!ids.every((id) => typeof id === 'string') || !names.every((n) => typeof n === 'string')) return null
+      return { region_set: data.region_set, region_ids: ids, names: names.map((n: string) => n.slice(0, 100)) }
+    }
     default:
       return null
   }
