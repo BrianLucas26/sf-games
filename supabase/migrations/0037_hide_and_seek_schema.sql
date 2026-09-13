@@ -18,6 +18,9 @@ create table hide_and_seek_game_state (
   max_seek_minutes int not null default 0 check (max_seek_minutes >= 0), -- 0 = no cap
   hand_limit int not null check (hand_limit >= 1),
   win_condition text not null check (win_condition in ('total_time', 'longest_single')),
+  -- Picks which printed curse value applies: 'small' uses each card's S
+  -- value, 'large' its M value. See content/hide-and-seek-curses.ts.
+  game_size text not null check (game_size in ('small', 'large')),
   current_round int not null default 1,
   winner_team_id uuid references teams (id),
   ended_reason text check (ended_reason in ('total_time', 'longest_single', 'tie'))
@@ -101,16 +104,29 @@ create table hide_and_seek_hand_cards (
   round_id uuid not null references hide_and_seek_rounds (id) on delete cascade,
   team_id uuid not null references teams (id),
   curse_key text not null,
+  -- Card text, resolved for this game's size when the card was drawn.
   name text not null,
   description text not null,
-  duration_minutes int,
+  casting_cost text not null,
+  notes text,
+  clear_mode text not null check (clear_mode in ('task', 'timer', 'deadline', 'round')),
   blocks_questions boolean not null,
+  duration_minutes int,
+  -- Casting costs this app enforces: discard this many held curses, or the
+  -- whole hand. Everything else is a cost the hider just confirms they paid.
+  discard_cost int,
+  discard_hand boolean not null default false,
+  -- Set when the hider must report a number the seekers have to match.
+  benchmark_label text,
   status text not null check (status in ('offered', 'held', 'played', 'discarded')),
   offer_id uuid references hide_and_seek_curse_offers (id) on delete cascade,
   drawn_at timestamptz not null default now()
 );
 
--- Public once played: the seekers need to see what they're under.
+-- Public once played: the seekers need to see what they're under. A curse is
+-- in effect until cleared_at is set ('task'/'deadline', a seeker marks it
+-- done), until expires_at passes ('timer'/'deadline'), or until the round
+-- ends ('round').
 create table hide_and_seek_active_curses (
   id uuid primary key default gen_random_uuid(),
   game_id uuid not null references games (id) on delete cascade,
@@ -118,11 +134,17 @@ create table hide_and_seek_active_curses (
   curse_key text not null,
   name text not null,
   description text not null,
-  duration_minutes int,
+  casting_cost text not null,
+  notes text,
+  clear_mode text not null check (clear_mode in ('task', 'timer', 'deadline', 'round')),
   blocks_questions boolean not null,
+  duration_minutes int,
+  -- What the hider reported when casting (e.g. "14 rocks"), shown to seekers.
+  benchmark_value text,
   played_by_player_id uuid references players (id) on delete set null,
   played_at timestamptz not null default now(),
-  expires_at timestamptz, -- null = task curse, cleared by a seeker
+  -- Set for 'timer'/'deadline' curses. 'task' and 'round' curses have none.
+  expires_at timestamptz,
   cleared_at timestamptz,
   cleared_by_player_id uuid references players (id) on delete set null
 );

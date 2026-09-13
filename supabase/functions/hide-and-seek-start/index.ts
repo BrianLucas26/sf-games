@@ -10,6 +10,7 @@ interface HideAndSeekSettings {
   max_seek_minutes: number
   hand_limit: number
   win_condition: 'total_time' | 'longest_single'
+  game_size: 'small' | 'large'
 }
 
 const DEFAULTS: HideAndSeekSettings = {
@@ -18,6 +19,7 @@ const DEFAULTS: HideAndSeekSettings = {
   max_seek_minutes: 0,
   hand_limit: 6,
   win_condition: 'total_time',
+  game_size: 'large',
 }
 
 function isWholeNumberInRange(value: unknown, min: number, max: number): value is number {
@@ -72,6 +74,9 @@ Deno.serve(async (req) => {
     if (!['total_time', 'longest_single'].includes(settings.win_condition)) {
       return json({ error: 'Unknown win condition.' }, 400)
     }
+    if (!['small', 'large'].includes(settings.game_size)) {
+      return json({ error: 'Game size must be small or large.' }, 400)
+    }
     if (fullDeckKeys().length === 0) {
       return json({ error: 'The curse deck is empty -- add curses to content/hide-and-seek-curses.ts.' }, 500)
     }
@@ -83,6 +88,7 @@ Deno.serve(async (req) => {
       max_seek_minutes: settings.max_seek_minutes,
       hand_limit: settings.hand_limit,
       win_condition: settings.win_condition,
+      game_size: settings.game_size,
       current_round: 1,
     })
     if (stateError) return json({ error: stateError.message }, 500)

@@ -1,4 +1,7 @@
 // Mirrors supabase/migrations/0037_hide_and_seek_schema.sql.
+import type { CurseClearMode, HideAndSeekGameSize } from '../../../content/hide-and-seek-curses'
+
+export type { CurseClearMode, HideAndSeekGameSize }
 
 export type HideAndSeekWinCondition = 'total_time' | 'longest_single'
 export type HideAndSeekRole = 'hider' | 'seeker'
@@ -10,6 +13,7 @@ export interface HideAndSeekGameStateRow {
   max_seek_minutes: number
   hand_limit: number
   win_condition: HideAndSeekWinCondition
+  game_size: HideAndSeekGameSize
   current_round: number
   winner_team_id: string | null
   ended_reason: HideAndSeekWinCondition | 'tie' | null
@@ -70,8 +74,15 @@ export interface HideAndSeekHandCardRow {
   curse_key: string
   name: string
   description: string
-  duration_minutes: number | null
+  casting_cost: string
+  notes: string | null
+  clear_mode: CurseClearMode
   blocks_questions: boolean
+  duration_minutes: number | null
+  // Casting costs the app enforces; everything else is confirmed by the hider.
+  discard_cost: number | null
+  discard_hand: boolean
+  benchmark_label: string | null
   status: 'offered' | 'held' | 'played' | 'discarded'
   offer_id: string | null
   drawn_at: string
@@ -84,8 +95,12 @@ export interface HideAndSeekActiveCurseRow {
   curse_key: string
   name: string
   description: string
-  duration_minutes: number | null
+  casting_cost: string
+  notes: string | null
+  clear_mode: CurseClearMode
   blocks_questions: boolean
+  duration_minutes: number | null
+  benchmark_value: string | null
   played_by_player_id: string | null
   played_at: string
   expires_at: string | null
@@ -124,6 +139,7 @@ export interface HideAndSeekSettings {
   max_seek_minutes: number // 0 = no limit
   hand_limit: number
   win_condition: HideAndSeekWinCondition
+  game_size: HideAndSeekGameSize
 }
 
 export const DEFAULT_HIDE_AND_SEEK_SETTINGS: HideAndSeekSettings = {
@@ -132,10 +148,18 @@ export const DEFAULT_HIDE_AND_SEEK_SETTINGS: HideAndSeekSettings = {
   max_seek_minutes: 0,
   hand_limit: 6,
   win_condition: 'total_time',
+  game_size: 'large',
 }
 
-// A curse is active until it's cleared (task curses) or its time runs out.
+// A curse is in effect until a seeker clears it ('task'/'deadline'), until its
+// timer runs out ('timer'/'deadline'), or until the round ends ('round' --
+// those have neither, and the board only ever passes the live round's curses).
 export function isCurseActive(curse: HideAndSeekActiveCurseRow, now: number): boolean {
   if (curse.cleared_at) return false
   return !curse.expires_at || new Date(curse.expires_at).getTime() > now
+}
+
+/** Seekers can mark these done; the others end on their own. */
+export function isCurseClearable(curse: HideAndSeekActiveCurseRow): boolean {
+  return curse.clear_mode === 'task' || curse.clear_mode === 'deadline'
 }

@@ -32,7 +32,9 @@ start -- each entry is a short `prompt` shown directly on the grid tile plus
 an optional longer `description` shown when a player taps the cell),
 `content/hide-and-seek-questions.ts` / `content/hide-and-seek-curses.ts`
 (Hide and Seek's question bank, each with its draw/keep cost, and the curse
-deck hiders draw from), and
+deck hiders draw from -- transcribed from the Jet Lag: The Game hide and
+seek cards, with each card's "[S.., M.., L..]" values resolved from the
+lobby's game-size setting), and
 `content/game-types.ts` (name/description per game slug —
 `game_types` itself only keeps `slug`/`id`/`is_active`, see Architecture
 above). Edit the file and push to `main`; that's the entire deploy step:

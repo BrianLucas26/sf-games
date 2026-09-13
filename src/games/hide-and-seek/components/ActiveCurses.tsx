@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Button } from '@/components/Button'
 import { formatCountdown, secondsUntil } from '@/lib/time'
 import { clearCurse } from '../api'
-import type { HideAndSeekActiveCurseRow, HideAndSeekRole } from '../types'
+import { isCurseClearable, type HideAndSeekActiveCurseRow, type HideAndSeekRole } from '../types'
 import { CurseTags } from './CurseHand'
 
 interface ActiveCursesProps {
@@ -14,8 +14,9 @@ interface ActiveCursesProps {
 }
 
 // Curses currently in effect on the seekers. Timed ones count down and clear
-// themselves; task curses wait for a seeker to tap "Done". Rendered by the
-// board on a ticking `now`, so the countdowns here stay live.
+// themselves; task curses wait for a seeker to tap "Done"; round-long ones
+// just stand. Rendered by the board on a ticking `now`, so the countdowns
+// here stay live.
 export function ActiveCurses({ gameId, curses, myRole, onChanged }: ActiveCursesProps) {
   const [busyId, setBusyId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -50,14 +51,36 @@ export function ActiveCurses({ gameId, curses, myRole, onChanged }: ActiveCurses
                   {formatCountdown(secondsUntil(curse.expires_at))}
                 </span>
               ) : (
-                <CurseTags durationMinutes={null} blocksQuestions={curse.blocks_questions} />
+                <CurseTags
+                  clearMode={curse.clear_mode}
+                  durationMinutes={curse.duration_minutes}
+                  blocksQuestions={curse.blocks_questions}
+                />
               )}
             </div>
             <p className="mt-1 text-xs text-muted">{curse.description}</p>
-            {curse.expires_at && curse.blocks_questions && (
-              <p className="mt-1 text-xs text-danger">No questions until this runs out.</p>
+
+            {curse.benchmark_value && (
+              <p className="mt-1.5 text-sm text-ink">
+                <span className="text-muted">The hiders' mark: </span>
+                <span className="font-medium">{curse.benchmark_value}</span>
+              </p>
             )}
-            {myRole === 'seeker' && !curse.expires_at && (
+
+            {curse.notes && (
+              <details className="mt-1.5">
+                <summary className="cursor-pointer text-xs text-faint">Fine print</summary>
+                <p className="mt-1 text-xs text-muted">{curse.notes}</p>
+              </details>
+            )}
+
+            {curse.blocks_questions && (
+              <p className="mt-1.5 text-xs text-danger">
+                {curse.expires_at ? 'No questions until this runs out.' : 'No questions until this is cleared.'}
+              </p>
+            )}
+
+            {myRole === 'seeker' && isCurseClearable(curse) && (
               <Button
                 variant="secondary"
                 className="mt-2 w-full py-1.5"

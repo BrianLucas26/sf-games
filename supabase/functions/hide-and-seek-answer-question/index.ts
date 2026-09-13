@@ -12,7 +12,7 @@ import {
   requireRole,
   shuffle,
 } from '../_shared/hideAndSeek.ts'
-import { HIDE_AND_SEEK_CURSES } from '../../../content/hide-and-seek-curses.ts'
+import { HIDE_AND_SEEK_CURSES, resolveCurse, type HideAndSeekGameSize } from '../../../content/hide-and-seek-curses.ts'
 
 const MAX_ANSWER_LENGTH = 500
 
@@ -120,6 +120,13 @@ Deno.serve(async (req) => {
       .filter((c): c is (typeof HIDE_AND_SEEK_CURSES)[number] => Boolean(c))
     if (curses.length === 0) return json({ question: answered, offer: null })
 
+    const { data: gameState } = await admin
+      .from('hide_and_seek_game_state')
+      .select('game_size')
+      .eq('game_id', game_id)
+      .single()
+    const size = (gameState?.game_size ?? 'large') as HideAndSeekGameSize
+
     const { data: offer, error: offerError } = await admin
       .from('hide_and_seek_curse_offers')
       .insert({
@@ -133,19 +140,30 @@ Deno.serve(async (req) => {
       .single()
     if (offerError) return json({ error: offerError.message }, 500)
 
+    // Card text is resolved for this game's size and copied onto the row, so
+    // a later edit to the content file can't change a card already in hand.
     const { error: cardsError } = await admin.from('hide_and_seek_hand_cards').insert(
-      curses.map((curse) => ({
-        game_id,
-        round_id: ctx.round.id,
-        team_id: ctx.round.hider_team_id,
-        curse_key: curse.id,
-        name: curse.name,
-        description: curse.description,
-        duration_minutes: curse.durationMinutes ?? null,
-        blocks_questions: curse.blocksQuestions ?? true,
-        status: 'offered',
-        offer_id: offer.id,
-      })),
+      curses.map((curse) => {
+        const resolved = resolveCurse(curse, size)
+        return {
+          game_id,
+          round_id: ctx.round.id,
+          team_id: ctx.round.hider_team_id,
+          curse_key: curse.id,
+          name: resolved.name,
+          description: resolved.description,
+          casting_cost: resolved.castingCost,
+          notes: resolved.notes,
+          clear_mode: resolved.clear,
+          blocks_questions: resolved.blocksQuestions,
+          duration_minutes: resolved.durationMinutes,
+          discard_cost: resolved.discardCost,
+          discard_hand: resolved.discardHand,
+          benchmark_label: resolved.benchmarkLabel,
+          status: 'offered',
+          offer_id: offer.id,
+        }
+      }),
     )
     if (cardsError) return json({ error: cardsError.message }, 500)
 

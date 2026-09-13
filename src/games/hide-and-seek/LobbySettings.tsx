@@ -72,6 +72,16 @@ export function LobbySettings({ gameId }: { gameId: string }) {
         </Select>
       </Field>
 
+      <Field label="Game size">
+        <Select
+          value={settings.game_size}
+          onChange={(e) => save({ ...settings, game_size: e.target.value as HideAndSeekSettings['game_size'] })}
+        >
+          <option value="small">Small (shorter game, tighter area)</option>
+          <option value="large">Large (longer game, city-wide)</option>
+        </Select>
+      </Field>
+
       <Field label="Max seeking time (minutes, 0 = no limit)">
         <TextInput
           type="number"
@@ -93,7 +103,8 @@ export function LobbySettings({ gameId }: { gameId: string }) {
       </Field>
 
       <p className="text-xs text-faint">
-        The first team listed above hides first. If the seek limit runs out, the hiders are credited with the full time.
+        Game size picks which of each curse's printed values apply -- a curse that lasts &quot;[S30, M45,
+        L60] minutes&quot; runs 30 in a small game and 45 in a large one. The first team listed above hides first. If the seek limit runs out, the hiders are credited with the full time.
       </p>
 
       {saving && <p className="text-xs text-faint">Saving…</p>}

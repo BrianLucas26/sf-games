@@ -11,8 +11,9 @@ import {
   requireRole,
 } from '../_shared/hideAndSeek.ts'
 
-// Seekers mark a task curse (no duration) as done. Timed curses can't be
-// cleared early -- they expire on their own at expires_at.
+// Seekers mark a curse as done. Only 'task' and 'deadline' curses can be
+// cleared this way: a 'timer' curse runs out on its own, and a 'round' curse
+// stands until the round ends.
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
 
@@ -34,12 +35,17 @@ Deno.serve(async (req) => {
 
     const { data: curse } = await admin
       .from('hide_and_seek_active_curses')
-      .select('expires_at, cleared_at')
+      .select('clear_mode, cleared_at')
       .eq('id', active_curse_id)
       .eq('round_id', ctx.round.id)
       .maybeSingle()
     if (!curse) return json({ error: 'Curse not found.' }, 404)
-    if (curse.expires_at) return json({ error: 'Timed curses clear themselves when time is up.' }, 400)
+    if (curse.clear_mode === 'timer') {
+      return json({ error: 'Timed curses clear themselves when time is up.' }, 400)
+    }
+    if (curse.clear_mode === 'round') {
+      return json({ error: 'This curse stands for the rest of the round.' }, 400)
+    }
 
     const { data: cleared } = await admin
       .from('hide_and_seek_active_curses')

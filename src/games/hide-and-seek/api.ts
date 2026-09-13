@@ -42,10 +42,18 @@ export function keepCurses(params: { gameId: string; offerId: string; keepCardId
   })
 }
 
-export function playCurse(params: { gameId: string; cardId: string }) {
-  return callFunction<{ curse: HideAndSeekActiveCurseRow }>('hide-and-seek-play-curse', {
+export function playCurse(params: {
+  gameId: string
+  cardId: string
+  discardCardIds: string[]
+  benchmarkValue: string | null
+}) {
+  return callFunction<{ curse: HideAndSeekActiveCurseRow; discarded: number }>('hide-and-seek-play-curse', {
     game_id: params.gameId,
     card_id: params.cardId,
+    discard_card_ids: params.discardCardIds,
+    benchmark_value: params.benchmarkValue,
+    cost_confirmed: true,
   })
 }
 
