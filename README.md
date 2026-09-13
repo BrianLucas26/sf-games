@@ -17,7 +17,7 @@ Players pick a game, create or join a lobby with a code/invite link, and play. E
 ## Architecture
 
 - **Generic layer**: `game_types` (`slug`/`id`/`is_active` only — see [Content](#content) below), `games`, `teams`, `players` — lobby creation, join codes, team assignment. Reusable across every game.
-- **Per-game layer** (built as each game ships): its own tables keyed off `games.id`, e.g. Turf War's `turf_war_zones`, `turf_war_captures`, `turf_war_discard_proposals`, `turf_war_secret_zones`, `turf_war_game_state`; Lockout's `lockout_cells`, `lockout_game_state`. Static content (challenge text, game type names/descriptions) is *not* stored in any of these tables — see [Content](#content) below.
+- **Per-game layer** (built as each game ships): its own tables keyed off `games.id`, e.g. Turf War's `turf_war_zones`, `turf_war_captures`, `turf_war_discard_proposals`, `turf_war_secret_zones`, `turf_war_game_state`; Lockout's `lockout_cells`, `lockout_game_state`; Hide and Seek's `hide_and_seek_rounds`, `hide_and_seek_questions`, `hide_and_seek_hand_cards`, `hide_and_seek_map_marks` (and friends — see `0037_hide_and_seek_schema.sql`). Static content (challenge text, game type names/descriptions) is *not* stored in any of these tables — see [Content](#content) below.
 - **Client-side extensibility seam**: [`src/lib/gameRegistry.ts`](src/lib/gameRegistry.ts). A game is a `GameModule` (lobby settings UI + board UI). The router/lobby code looks games up by slug and never imports a specific game's code directly — adding a game means writing `src/games/<slug>/{Board,LobbySettings,register}.tsx` and importing `register` once from `src/App.tsx`.
 - **Trust boundary**: tables are `select`-only from the browser (see RLS policies in [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql)). All writes go through edge functions using the secret key, which is where atomic state transitions (claim races, veto windows, zone replenishment) live.
 
@@ -29,7 +29,12 @@ lives in git under [`content/`](content), not the database:
 `content/turf-war-challenges.ts` (keyed by neighborhood slug),
 `content/lockout-challenges.ts` (a flat pool Lockout samples from at game
 start -- each entry is a short `prompt` shown directly on the grid tile plus
-an optional longer `description` shown when a player taps the cell), and
+an optional longer `description` shown when a player taps the cell),
+`content/hide-and-seek-questions.ts` / `content/hide-and-seek-curses.ts`
+(Hide and Seek's question bank, each with its draw/keep cost, and the curse
+deck hiders draw from -- transcribed from the Jet Lag: The Game hide and
+seek cards, with each card's "[S.., M.., L..]" values resolved from the
+lobby's game-size setting), and
 `content/game-types.ts` (name/description per game slug —
 `game_types` itself only keeps `slug`/`id`/`is_active`, see Architecture
 above). Edit the file and push to `main`; that's the entire deploy step:
@@ -38,7 +43,8 @@ above). Edit the file and push to `main`; that's the entire deploy step:
   changes go live the moment Cloudflare finishes its normal auto-deploy —
   no extra step.
 - `lockout-start` (an edge function) also imports `content/lockout-challenges.ts`
-  directly, but edge functions only pick up code changes when explicitly
+  directly (as do the `hide-and-seek-*` functions with their two content
+  files), but edge functions only pick up code changes when explicitly
   redeployed. [`.github/workflows/deploy-functions.yml`](.github/workflows/deploy-functions.yml)
   handles that automatically on every push touching `supabase/functions/**`
   or `content/**` — see the `SUPABASE_ACCESS_TOKEN` setup step below.
