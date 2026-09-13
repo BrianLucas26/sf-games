@@ -4,6 +4,7 @@ import { GAME_TYPE_CONTENT } from '../../content/game-types'
 import { Button } from '@/components/Button'
 import { supabase } from '@/lib/supabaseClient'
 import { useCurrentPlayer } from '@/hooks/useCurrentPlayer'
+import { useResumeEpoch } from '@/hooks/useResumeEpoch'
 import { getGameModule } from '@/lib/gameRegistry'
 import { cancelGame, renameTeam, selectTeam } from '@/lib/gameApi'
 import type { GameRow, PlayerRow, TeamRow } from '@/types/database'
@@ -25,6 +26,7 @@ export default function Lobby() {
   const [editingTeamId, setEditingTeamId] = useState<string | null>(null)
   const [draftName, setDraftName] = useState('')
   const [renaming, setRenaming] = useState(false)
+  const resumeEpoch = useResumeEpoch()
 
   const load = useCallback(() => {
     supabase
@@ -56,7 +58,6 @@ export default function Lobby() {
   }, [gameId, navigate])
 
   useEffect(() => {
-    load()
     const channel = supabase
       .channel(`lobby-${gameId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'games', filter: `id=eq.${gameId}` }, load)
@@ -65,11 +66,19 @@ export default function Lobby() {
         { event: '*', schema: 'public', table: 'players', filter: `game_id=eq.${gameId}` },
         load,
       )
-      .subscribe()
+      .subscribe((status) => {
+        // Fires on the first join AND on every automatic rejoin, so this is
+        // both the initial load and the reconnect resync -- realtime never
+        // replays what was missed while the socket was down, so without this
+        // a phone that slept in the lobby would miss players joining.
+        if (status === 'SUBSCRIBED') load()
+      })
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [gameId, load])
+    // resumeEpoch rebuilds the channel when the page returns to the
+    // foreground -- see useResumeEpoch.
+  }, [gameId, resumeEpoch, load])
 
   useEffect(() => {
     if (game?.status === 'active') navigate(`/play/${gameId}`)
