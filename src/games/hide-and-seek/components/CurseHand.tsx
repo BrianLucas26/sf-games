@@ -360,7 +360,7 @@ export function CurseHand({ gameId, cards, offers, questions, handLimit, roundAc
                     disabled={playingCardId !== null}
                     onClick={() => setPlayingCardId(card.id)}
                   >
-                    Play on the seekers
+                    Play card
                   </Button>
                 ))}
             </li>
