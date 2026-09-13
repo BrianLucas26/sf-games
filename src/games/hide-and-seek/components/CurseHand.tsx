@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/Button'
 import { TextInput } from '@/components/Field'
+import { HIDE_AND_SEEK_CURSES } from '../../../../content/hide-and-seek-curses'
 import { keepCurses, playCurse } from '../api'
 import type {
   CurseClearMode,
@@ -74,6 +75,18 @@ function CardBody({ card }: { card: HideAndSeekHandCardRow }) {
       </span>
     </>
   )
+}
+
+// Curses whose cost leans on a mechanic the app doesn't model (time bonuses,
+// power-ups, vetoes...) -- see `unsupported` in content/hide-and-seek-curses.ts.
+const UNSUPPORTED_CURSE_KEYS = new Set(HIDE_AND_SEEK_CURSES.filter((c) => c.unsupported).map((c) => c.id))
+
+// Why a held curse can't be cast right now, or null if it can. Only costs the
+// app tracks block play; physical costs are confirmed in the play sheet.
+function unplayableReason(card: HideAndSeekHandCardRow, otherHeldCount: number): string | null {
+  if (UNSUPPORTED_CURSE_KEYS.has(card.curse_key)) return "Card can't be played"
+  if (!card.discard_hand && (card.discard_cost ?? 0) > otherHeldCount) return 'Casting cost not met'
+  return null
 }
 
 // Paying a curse's casting cost. Discards are enforced against the real hand
@@ -289,9 +302,16 @@ function OfferPicker({
 }
 
 // The hiders' hand: resolve pending draws (oldest first), then play held
-// curses on the seekers whenever it suits them.
+// curses whenever it suits them. Tapping a card selects it and reveals its
+// play button; tapping it again deselects.
 export function CurseHand({ gameId, cards, offers, questions, handLimit, roundActive, onChanged }: CurseHandProps) {
-  const [playingCardId, setPlayingCardId] = useState<string | null>(null)
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(null)
+  const [playing, setPlaying] = useState(false)
+
+  function toggleSelected(id: string) {
+    setSelectedCardId((current) => (current === id ? null : id))
+    setPlaying(false)
+  }
 
   const held = cards.filter((c) => c.status === 'held')
   const pendingOffers = roundActive ? offers.filter((o) => !o.resolved_at) : []
@@ -332,39 +352,67 @@ export function CurseHand({ gameId, cards, offers, questions, handLimit, roundAc
         </p>
       ) : (
         <ul className="mt-3 space-y-2">
-          {held.map((card) => (
-            <li key={card.id} className="rounded-lg border border-border p-3 text-sm">
-              <CardBody card={card} />
-              {card.notes && (
-                <details className="mt-1.5">
-                  <summary className="cursor-pointer text-xs text-faint">Fine print</summary>
-                  <p className="mt-1 text-xs text-muted">{card.notes}</p>
-                </details>
-              )}
-              {roundActive &&
-                (playingCardId === card.id ? (
-                  <PlaySheet
-                    gameId={gameId}
-                    card={card}
-                    otherHeld={held.filter((c) => c.id !== card.id)}
-                    onDone={async () => {
-                      setPlayingCardId(null)
-                      await onChanged()
-                    }}
-                    onCancel={() => setPlayingCardId(null)}
-                  />
-                ) : (
-                  <Button
-                    variant="secondary"
-                    className="mt-2 w-full py-1.5"
-                    disabled={playingCardId !== null}
-                    onClick={() => setPlayingCardId(card.id)}
-                  >
-                    Play card
-                  </Button>
-                ))}
-            </li>
-          ))}
+          {held.map((card) => {
+            const selected = selectedCardId === card.id
+            const otherHeld = held.filter((c) => c.id !== card.id)
+            const reason = unplayableReason(card, otherHeld.length)
+            return (
+              <li
+                key={card.id}
+                className={`rounded-lg border text-sm transition-colors ${
+                  selected ? 'border-accent bg-accent/[0.06]' : 'border-border hover:border-border-strong'
+                }`}
+              >
+                <button
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() => toggleSelected(card.id)}
+                  className="block w-full p-3 text-left"
+                >
+                  <CardBody card={card} />
+                </button>
+                {(card.notes || (selected && roundActive)) && (
+                  <div className="px-3 pb-3">
+                    {card.notes && (
+                      <details>
+                        <summary className="cursor-pointer text-xs text-faint">Fine print</summary>
+                        <p className="mt-1 text-xs text-muted">{card.notes}</p>
+                      </details>
+                    )}
+                    {selected &&
+                      roundActive &&
+                      (playing ? (
+                        <PlaySheet
+                          gameId={gameId}
+                          card={card}
+                          otherHeld={otherHeld}
+                          onDone={async () => {
+                            setSelectedCardId(null)
+                            setPlaying(false)
+                            await onChanged()
+                          }}
+                          onCancel={() => setPlaying(false)}
+                        />
+                      ) : (
+                        <>
+                          {/* The tooltip sits on a wrapper: disabled buttons don't get hover events. */}
+                          <span title={reason ?? undefined} className={`mt-2 block ${reason ? 'cursor-not-allowed' : ''}`}>
+                            <Button
+                              className="w-full py-1.5 disabled:pointer-events-none"
+                              disabled={reason !== null}
+                              onClick={() => setPlaying(true)}
+                            >
+                              Play card
+                            </Button>
+                          </span>
+                          {reason && <p className="mt-1 text-center text-xs text-faint">{reason}</p>}
+                        </>
+                      ))}
+                  </div>
+                )}
+              </li>
+            )
+          })}
         </ul>
       )}
     </div>
