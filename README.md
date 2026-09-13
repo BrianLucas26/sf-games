@@ -194,6 +194,6 @@ disabled on the create page, independent of `game_types.is_active` (which
 only controls whether a game appears on the landing page at all). Remove a
 slug from that set once it's ready for real play.
 
-To play a coming-soon game locally without launching it, set
-`VITE_UNLOCKED_GAMES=turf-war,hide-and-seek` (comma-separated slugs) in
-`.env.local`. Production doesn't set it, so those games stay Coming Soon there.
+To play coming-soon games locally without launching them, set
+`VITE_UNLOCK_ALL_GAMES=true` in `.env.local`. Production doesn't set it, so
+those games stay Coming Soon there.
