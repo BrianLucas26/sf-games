@@ -12,10 +12,9 @@ import {
 } from '../_shared/hideAndSeek.ts'
 
 type MarkOp = 'add' | 'delete' | 'clear'
-type MarkKind = 'half_plane' | 'circle' | 'freehand' | 'pin' | 'region'
+type MarkKind = 'half_plane' | 'circle' | 'freehand' | 'region'
 
 const MAX_FREEHAND_POINTS = 2000
-const MAX_LABEL_LENGTH = 60
 
 function isLngLat(value: unknown): value is [number, number] {
   return (
@@ -45,10 +44,6 @@ function validateMarkData(kind: MarkKind, data: Record<string, unknown>): Record
       if (!Array.isArray(data.points) || data.points.length < 2 || data.points.length > MAX_FREEHAND_POINTS) return null
       if (!data.points.every(isLngLat)) return null
       return { points: data.points }
-    case 'pin':
-      if (!isLngLat(data.at)) return null
-      if (typeof data.label !== 'string' || data.label.length > MAX_LABEL_LENGTH) return null
-      return { at: data.at, label: data.label.trim() }
     case 'region':
       if (data.region_set !== 'neighborhoods' && data.region_set !== 'districts') return null
       if (typeof data.region_id !== 'string' || typeof data.name !== 'string') return null

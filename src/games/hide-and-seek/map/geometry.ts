@@ -14,12 +14,12 @@ const HALF_PLANE_REACH_DEG = 3
 const EARTH_RADIUS_KM = 6371
 const CIRCLE_STEPS = 72
 
-export type MarkFeatureRole = 'shade' | 'line' | 'pin'
+// 'point' is only used for the draft's tapped points (see HideAndSeekMap).
+export type MarkFeatureRole = 'shade' | 'line' | 'point'
 
 export interface MarkFeatureProps {
   markId: string
   role: MarkFeatureRole
-  label?: string
 }
 
 // Closed rectangle ring, counter-clockwise (GeoJSON outer-ring winding).
@@ -104,7 +104,7 @@ export function longitudeLine(at: LngLat, shade: 'east' | 'west'): MarkData {
 // Region marks aren't drawn here -- they tint the region polygons themselves
 // via feature-state (see HideAndSeekMap).
 export function markToFeatures(markId: string, mark: MarkData): GeoJSON.Feature[] {
-  const props = (role: MarkFeatureRole, label?: string): MarkFeatureProps => ({ markId, role, label })
+  const props = (role: MarkFeatureRole): MarkFeatureProps => ({ markId, role })
 
   switch (mark.kind) {
     case 'half_plane': {
@@ -133,14 +133,6 @@ export function markToFeatures(markId: string, mark: MarkData): GeoJSON.Feature[
           properties: props('line'),
         },
       ]
-    case 'pin':
-      return [
-        {
-          type: 'Feature',
-          geometry: { type: 'Point', coordinates: mark.data.at },
-          properties: props('pin', mark.data.label),
-        },
-      ]
     case 'region':
       return []
   }
@@ -158,8 +150,6 @@ export function describeMark(mark: MarkData): string {
       return `Ruled out ${mark.data.shade} ${mark.data.radius_km} km circle`
     case 'freehand':
       return 'Drawing'
-    case 'pin':
-      return mark.data.label ? `Pin: ${mark.data.label}` : 'Pin'
     case 'region':
       return `Crossed out: ${mark.data.name}`
   }

@@ -15,8 +15,8 @@ const REGION_SETS: RegionSetKey[] = ['neighborhoods', 'districts']
 const MARK_COLOR = '#f5c542'
 const DRAFT_COLOR = '#d97757'
 const LABEL_FONT = ['DIN Pro Medium', 'Arial Unicode MS Regular']
-// Pins and ask-point labels are few and matter more than any street or
-// region name, so they never lose Mapbox's label collision.
+// Ask-point labels are few and matter more than any street or region name,
+// so they never lose Mapbox's label collision.
 const ALWAYS_SHOW = { 'text-allow-overlap': true, 'text-ignore-placement': true } as const
 // A drag has to move this many screen pixels before the pen adds a point --
 // keeps freehand strokes from ballooning into thousands of near-duplicates.
@@ -35,6 +35,8 @@ export interface HideAndSeekMapProps {
   showDistricts: boolean
   marks: HideAndSeekMapMarkRow[]
   draft?: MarkData | null
+  // Tapped points of an in-progress shape, drawn as dots.
+  draftPoints?: LngLat[]
   askPoints?: AskPoint[]
   // While true, one-finger / mouse drags draw a stroke instead of panning.
   penActive?: boolean
@@ -75,10 +77,11 @@ function setData(map: mapboxgl.Map, sourceId: string, data: GeoJSON.FeatureColle
 }
 
 const EMPTY = collection([])
+const NO_POINTS: LngLat[] = []
 
 // Hide and Seek's map: toggleable neighborhood/district overlays, the
 // seekers' shared markup (shaded half-planes and circles, freehand strokes,
-// pins, crossed-out regions), and where each question was asked from.
+// crossed-out regions), and where each question was asked from.
 // Separate from the shared RegionMap (src/lib/map/RegionMap.tsx) because
 // this one is a drawing surface over several independent layers rather than
 // a single "color each region" choropleth -- it borrows the same conventions
@@ -90,6 +93,7 @@ export function HideAndSeekMap({
   showDistricts,
   marks,
   draft = null,
+  draftPoints = NO_POINTS,
   askPoints = [],
   penActive = false,
   onMapClick,
@@ -198,10 +202,10 @@ export function HideAndSeekMap({
         paint: { 'line-color': DRAFT_COLOR, 'line-width': 2.5, 'line-dasharray': [2, 1.5] },
       })
       map.addLayer({
-        id: 'draft-pin',
+        id: 'draft-point',
         type: 'circle',
         source: 'draft',
-        filter: ['==', ['get', 'role'], 'pin'],
+        filter: ['==', ['get', 'role'], 'point'],
         paint: { 'circle-radius': 7, 'circle-color': DRAFT_COLOR, 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 2 },
       })
 
@@ -218,28 +222,6 @@ export function HideAndSeekMap({
         source: 'ask-points',
         layout: { ...ALWAYS_SHOW, 'text-field': ['get', 'label'], 'text-font': LABEL_FONT, 'text-size': 11, 'text-offset': [0, 1.2] },
         paint: { 'text-color': '#ffffff', 'text-halo-color': '#000000', 'text-halo-width': 1.5 },
-      })
-
-      map.addLayer({
-        id: 'marks-pin',
-        type: 'circle',
-        source: 'marks',
-        filter: ['==', ['get', 'role'], 'pin'],
-        paint: { 'circle-radius': 7, 'circle-color': MARK_COLOR, 'circle-stroke-color': '#000000', 'circle-stroke-width': 2 },
-      })
-      map.addLayer({
-        id: 'marks-pin-label',
-        type: 'symbol',
-        source: 'marks',
-        filter: ['==', ['get', 'role'], 'pin'],
-        layout: {
-          ...ALWAYS_SHOW,
-          'text-field': ['coalesce', ['get', 'label'], ''],
-          'text-font': LABEL_FONT,
-          'text-size': 12,
-          'text-offset': [0, 1.3],
-        },
-        paint: { 'text-color': MARK_COLOR, 'text-halo-color': '#000000', 'text-halo-width': 1.5 },
       })
 
       for (const set of REGION_SETS) {
@@ -354,8 +336,21 @@ export function HideAndSeekMap({
   useEffect(() => {
     const map = mapRef.current
     if (!map || !mapLoaded) return
-    setData(map, 'draft', draft ? collection(markToFeatures('draft', draft)) : EMPTY)
-  }, [draft, mapLoaded])
+    setData(
+      map,
+      'draft',
+      collection([
+        ...(draft ? markToFeatures('draft', draft) : []),
+        ...draftPoints.map(
+          (at): GeoJSON.Feature => ({
+            type: 'Feature',
+            geometry: { type: 'Point', coordinates: at },
+            properties: { markId: 'draft', role: 'point' },
+          }),
+        ),
+      ]),
+    )
+  }, [draft, draftPoints, mapLoaded])
 
   useEffect(() => {
     const map = mapRef.current

@@ -9,7 +9,7 @@ import { HideAndSeekMap, type AskPoint } from './HideAndSeekMap'
 import { getCurrentLngLat } from './location'
 import { REGION_SET_COLORS } from './style'
 
-type Tool = 'pan' | 'ns' | 'ew' | 'line' | 'circle' | 'region' | 'pen' | 'pin'
+type Tool = 'pan' | 'ns' | 'ew' | 'line' | 'circle' | 'region' | 'pen'
 
 const TOOLS: { id: Tool; label: string; hint: string }[] = [
   { id: 'pan', label: 'Move', hint: '' },
@@ -19,7 +19,6 @@ const TOOLS: { id: Tool; label: string; hint: string }[] = [
   { id: 'circle', label: 'Circle', hint: 'Tap the center (or use your location), set a radius, then rule out inside or outside.' },
   { id: 'region', label: 'Cross out', hint: 'Tap a region to cross it out. Tap it again to bring it back.' },
   { id: 'pen', label: 'Pen', hint: 'Drag to draw. Pinch with two fingers to zoom.' },
-  { id: 'pin', label: 'Pin', hint: 'Tap the map (or use your location) to drop a labeled pin.' },
 ]
 
 const REGION_SET_LABELS: Record<RegionSetKey, string> = { neighborhoods: 'Neighborhoods', districts: 'Districts' }
@@ -78,7 +77,6 @@ export function MapPanel({ gameId, regions, marks, askPoints, editable, onMarksC
   const [lineSide, setLineSide] = useState<'left' | 'right'>('left')
   const [circleShade, setCircleShade] = useState<'inside' | 'outside'>('outside')
   const [radiusKm, setRadiusKm] = useState('1')
-  const [pinLabel, setPinLabel] = useState('')
   const [regionSet, setRegionSet] = useState<RegionSetKey>('neighborhoods')
   const [busy, setBusy] = useState(false)
   const [locating, setLocating] = useState(false)
@@ -96,19 +94,22 @@ export function MapPanel({ gameId, regions, marks, askPoints, editable, onMarksC
       case 'ew':
         return longitudeLine(point, ewShade)
       case 'line':
-        return point2
-          ? { kind: 'half_plane', data: { a: point, b: point2, side: lineSide } }
-          : { kind: 'pin', data: { at: point, label: '' } }
+        return point2 ? { kind: 'half_plane', data: { a: point, b: point2, side: lineSide } } : null
       case 'circle':
         return radiusValid ? { kind: 'circle', data: { center: point, radius_km: radius, shade: circleShade } } : null
-      case 'pin':
-        return { kind: 'pin', data: { at: point, label: pinLabel.trim() } }
       default:
         return null
     }
-  }, [activeTool, point, point2, nsShade, ewShade, lineSide, circleShade, radius, radiusValid, pinLabel])
+  }, [activeTool, point, point2, nsShade, ewShade, lineSide, circleShade, radius, radiusValid])
 
-  const draftReady = draft !== null && (activeTool !== 'line' || point2 !== null)
+  // The line tool's tapped points, drawn as dots so the first tap shows up
+  // before there's a line to draw.
+  const draftPoints = useMemo<LngLat[]>(
+    () => (activeTool === 'line' ? [point, point2].filter((p): p is LngLat => p !== null) : []),
+    [activeTool, point, point2],
+  )
+
+  const draftReady = draft !== null
 
   function toggleOverlay(set: RegionSetKey) {
     const next = { ...overlays, [set]: !overlays[set] }
@@ -142,7 +143,6 @@ export function MapPanel({ gameId, regions, marks, askPoints, editable, onMarksC
       case 'ns':
       case 'ew':
       case 'circle':
-      case 'pin':
         setPoint(at)
         return
       case 'line':
@@ -195,7 +195,6 @@ export function MapPanel({ gameId, regions, marks, askPoints, editable, onMarksC
       await addMapMark({ gameId, mark: draft })
       setPoint(null)
       setPoint2(null)
-      setPinLabel('')
     })
   }
 
@@ -245,7 +244,7 @@ export function MapPanel({ gameId, regions, marks, askPoints, editable, onMarksC
             </div>
           )}
 
-          {['ns', 'ew', 'circle', 'pin'].includes(activeTool) && (
+          {['ns', 'ew', 'circle'].includes(activeTool) && (
             <Button variant="secondary" className="px-3 py-1.5 text-xs" onClick={placeAtMyLocation} disabled={locating}>
               {locating ? 'Locating…' : 'Use my location'}
             </Button>
@@ -295,17 +294,7 @@ export function MapPanel({ gameId, regions, marks, askPoints, editable, onMarksC
             </div>
           )}
 
-          {activeTool === 'pin' && (
-            <TextInput
-              value={pinLabel}
-              maxLength={60}
-              onChange={(e) => setPinLabel(e.target.value)}
-              placeholder="Label (optional)"
-              className="py-1.5"
-            />
-          )}
-
-          {['ns', 'ew', 'line', 'circle', 'pin'].includes(activeTool) && (
+          {['ns', 'ew', 'line', 'circle'].includes(activeTool) && (
             <div className="flex gap-2">
               <Button className="px-3 py-1.5 text-xs" onClick={saveDraft} disabled={!draftReady || busy}>
                 {busy ? 'Saving…' : 'Save to map'}
@@ -336,6 +325,7 @@ export function MapPanel({ gameId, regions, marks, askPoints, editable, onMarksC
         showDistricts={overlays.districts}
         marks={marks}
         draft={draft}
+        draftPoints={draftPoints}
         askPoints={askPoints}
         penActive={activeTool === 'pen'}
         onMapClick={editable ? handleMapClick : undefined}
