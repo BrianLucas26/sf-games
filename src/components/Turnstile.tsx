@@ -1,6 +1,12 @@
 import { Turnstile as TurnstileWidget } from '@marsidev/react-turnstile'
 
-const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY
+// Trimmed because a stray space in the build variable is invisible but
+// fatal: Turnstile validates the key's format and throws rather than
+// rendering, and a whitespace-only value is truthy enough to slip past
+// the !siteKey guard below -- so the widget silently doesn't exist and
+// every Turnstile-gated button stays disabled with nothing on screen to
+// explain why. Cost one production launch (sfgamers.com, Sept 2026).
+const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY?.trim()
 
 // Shared across every human-gated write (create-game, join-game, ...) so the
 // site key + failure handling only lives in one place. Verification itself
