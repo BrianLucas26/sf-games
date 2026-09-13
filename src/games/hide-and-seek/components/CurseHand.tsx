@@ -68,6 +68,10 @@ function CardBody({ card }: { card: HideAndSeekHandCardRow }) {
         />
       </span>
       <span className="mt-1 block text-xs text-muted">{card.description}</span>
+      <span className="mt-2 block border-t border-border pt-1.5 text-xs">
+        <span className="font-medium tracking-wide text-faint uppercase">Casting cost</span>
+        <span className="mt-0.5 block text-ink">{card.casting_cost}</span>
+      </span>
     </>
   )
 }
@@ -123,11 +127,6 @@ function PlaySheet({
 
   return (
     <div className="mt-2 space-y-2.5 rounded-lg border border-accent/40 bg-accent/[0.06] p-3">
-      <div>
-        <p className="text-xs font-medium tracking-wide text-faint uppercase">Casting cost</p>
-        <p className="mt-1 text-sm text-ink">{card.casting_cost}</p>
-      </div>
-
       {card.discard_hand && (
         <p className="text-xs text-danger">
           This discards your whole hand{otherHeld.length > 0 ? ` (${otherHeld.length} other curse${otherHeld.length === 1 ? '' : 's'})` : ' -- you hold nothing else'}.
