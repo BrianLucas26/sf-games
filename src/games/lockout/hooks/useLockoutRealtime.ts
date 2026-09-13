@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
+import { useResumeEpoch } from '@/hooks/useResumeEpoch'
 import type { GameStatus } from '@/types/database'
 import type { LockoutCellRow, LockoutGameStateRow } from '../types'
 
@@ -11,15 +12,15 @@ import type { LockoutCellRow, LockoutGameStateRow } from '../types'
 // see 0035 -- so no team_id filter is needed here).
 //
 // The loaders are returned as well as subscribed: a client must not rely on
-// realtime to observe its OWN action, since a postgres_changes event can
-// land before the channel finishes establishing (same reason Lobby.tsx
-// re-loads after selectTeam).
+// realtime to observe its OWN action (same reason Lobby.tsx re-loads after
+// selectTeam).
 export function useLockoutRealtime(gameId: string) {
   const [cells, setCells] = useState<LockoutCellRow[]>([])
   const [gameState, setGameState] = useState<LockoutGameStateRow | null>(null)
   const [gameStatus, setGameStatus] = useState<GameStatus | null>(null)
   const [myVetoedCellIds, setMyVetoedCellIds] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
+  const resumeEpoch = useResumeEpoch()
 
   const loadCells = useCallback(async () => {
     const { data } = await supabase.from('lockout_cells').select('*').eq('game_id', gameId)
@@ -46,10 +47,6 @@ export function useLockoutRealtime(gameId: string) {
   }, [gameId])
 
   useEffect(() => {
-    Promise.all([loadCells(), loadGameState(), loadGameStatus(), loadMyPendingVetoes()]).then(() =>
-      setLoading(false),
-    )
-
     const channel = supabase
       .channel(`lockout-board-${gameId}`)
       .on(
@@ -72,12 +69,29 @@ export function useLockoutRealtime(gameId: string) {
         { event: '*', schema: 'public', table: 'lockout_pending_vetoes', filter: `game_id=eq.${gameId}` },
         loadMyPendingVetoes,
       )
-      .subscribe()
+      .subscribe((status) => {
+        if (status !== 'SUBSCRIBED') return
+        // Fires on the first join AND on every automatic rejoin after the
+        // socket drops, so this is both the initial load and the reconnect
+        // resync -- postgres_changes never replays what was missed while the
+        // connection was down, which is why a backgrounded phone used to come
+        // back showing a stale board until the player hand-refreshed.
+        //
+        // Loading here rather than before .subscribe() also closes the race
+        // where a change lands between the query returning and the channel
+        // finishing establishing.
+        Promise.all([loadCells(), loadGameState(), loadGameStatus(), loadMyPendingVetoes()]).then(
+          () => setLoading(false),
+        )
+      })
 
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [gameId, loadCells, loadGameState, loadGameStatus, loadMyPendingVetoes])
+    // resumeEpoch: rebuild the channel when the page returns to the
+    // foreground, rather than waiting up to a heartbeat for realtime-js to
+    // notice the socket died while we were frozen.
+  }, [gameId, resumeEpoch, loadCells, loadGameState, loadGameStatus, loadMyPendingVetoes])
 
   return {
     cells,

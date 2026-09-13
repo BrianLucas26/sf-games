@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
+import { useResumeEpoch } from '@/hooks/useResumeEpoch'
 import type { GameStatus } from '@/types/database'
 import type { RegionRow } from '@/types/geo'
 import type { TurfWarDiscardProposalRow, TurfWarGameStateRow, TurfWarZoneRow } from '../types'
@@ -30,6 +31,7 @@ export function useTurfWarRealtime(gameId: string) {
   const [gameState, setGameState] = useState<TurfWarGameStateRow | null>(null)
   const [gameStatus, setGameStatus] = useState<GameStatus | null>(null)
   const [loading, setLoading] = useState(true)
+  const resumeEpoch = useResumeEpoch()
 
   const loadGameState = useCallback(async () => {
     const { data } = await supabase
@@ -65,10 +67,6 @@ export function useTurfWarRealtime(gameId: string) {
       if (!cancelled && data) setGameStatus(data.status)
     }
 
-    Promise.all([loadZones(), loadProposals(), loadGameState(), loadGameStatus()]).then(() => {
-      if (!cancelled) setLoading(false)
-    })
-
     const channel = supabase
       .channel(`turf-war-board-${gameId}`)
       .on(
@@ -91,13 +89,22 @@ export function useTurfWarRealtime(gameId: string) {
         { event: '*', schema: 'public', table: 'games', filter: `id=eq.${gameId}` },
         loadGameStatus,
       )
-      .subscribe()
+      .subscribe((status) => {
+        if (status !== 'SUBSCRIBED') return
+        // Fires on the first join AND on every automatic rejoin, so this is
+        // both the initial load and the reconnect resync -- postgres_changes
+        // never replays what was missed while the socket was down. See
+        // useResumeEpoch for why the channel is rebuilt on foreground.
+        Promise.all([loadZones(), loadProposals(), loadGameState(), loadGameStatus()]).then(() => {
+          if (!cancelled) setLoading(false)
+        })
+      })
 
     return () => {
       cancelled = true
       supabase.removeChannel(channel)
     }
-  }, [gameId, loadGameState])
+  }, [gameId, loadGameState, resumeEpoch])
 
   return { zones, proposals, gameState, gameStatus, loading, refreshGameState: loadGameState }
 }
