@@ -4,8 +4,10 @@ import { useCurrentPlayer } from '@/hooks/useCurrentPlayer'
 import type { TeamRow } from '@/types/database'
 import { TURF_WAR_CHALLENGES } from '../../../content/turf-war-challenges'
 import { DiscardPicker } from './components/DiscardPicker'
+import { NextSecretTimer } from './components/NextSecretTimer'
 import { OpenZonesList } from './components/OpenZonesList'
 import { PhotoDownloadButton } from './components/PhotoDownloadButton'
+import { RoundTimer } from './components/RoundTimer'
 import { Scoreboard } from './components/Scoreboard'
 import { SecretZonePanel } from './components/SecretZonePanel'
 import { VetoBanner } from './components/VetoBanner'
@@ -15,15 +17,15 @@ import { useMySecretZones } from './hooks/useMySecretZones'
 import { useTurfWarRealtime, type ZoneWithRegion } from './hooks/useTurfWarRealtime'
 import { useTurfWarStandings } from './hooks/useTurfWarStandings'
 import { TEAM_COLORS } from './theme'
-import type { TurfWarCaptureRow, TurfWarVerificationMode } from './types'
+import type { TurfWarCaptureRow } from './types'
 
 export function Board({ gameId }: { gameId: string }) {
   const { player } = useCurrentPlayer(gameId)
-  const { zones, proposals, loading } = useTurfWarRealtime(gameId)
+  const { zones, proposals, gameState, gameStatus, loading, refreshGameState } =
+    useTurfWarRealtime(gameId)
   const standings = useTurfWarStandings(gameId, zones)
   const mySecrets = useMySecretZones(gameId, player?.team_id ?? undefined)
   const [teams, setTeams] = useState<TeamRow[]>([])
-  const [verificationMode, setVerificationMode] = useState<TurfWarVerificationMode>('none')
   const [joinCode, setJoinCode] = useState<string | null>(null)
   const [selectedZone, setSelectedZone] = useState<ZoneWithRegion | null>(null)
   const [pendingCapture, setPendingCapture] = useState<TurfWarCaptureRow | null>(null)
@@ -42,13 +44,6 @@ export function Board({ gameId }: { gameId: string }) {
       .eq('game_id', gameId)
       .order('position')
       .then(({ data }) => data && setTeams(data))
-
-    supabase
-      .from('turf_war_game_state')
-      .select('verification_mode')
-      .eq('game_id', gameId)
-      .single()
-      .then(({ data }) => data && setVerificationMode(data.verification_mode))
   }, [gameId])
 
   const teamColorById = useMemo(() => {
@@ -61,6 +56,8 @@ export function Board({ gameId }: { gameId: string }) {
 
   const mySecretZoneIds = useMemo(() => new Set(mySecrets.map((s) => s.zone_id)), [mySecrets])
   const myTeamColor = player?.team_id ? teamColorById[player.team_id] : undefined
+
+  const gameEnded = gameStatus === 'completed'
 
   if (loading) {
     return (
@@ -81,12 +78,26 @@ export function Board({ gameId }: { gameId: string }) {
       />
 
       <div className="space-y-4">
+        {gameState && (
+          <RoundTimer roundEndsAt={gameState.round_ends_at} gameEnded={gameEnded} />
+        )}
+
         <Scoreboard standings={standings} teams={teams} teamColorById={teamColorById} />
 
         <OpenZonesList zones={zones} onSelect={setSelectedZone} />
 
         {player?.team_id && (
-          <SecretZonePanel secrets={mySecrets} zones={zones} onSelect={setSelectedZone} />
+          <div className="space-y-1.5">
+            <SecretZonePanel secrets={mySecrets} zones={zones} onSelect={setSelectedZone} />
+            {gameState && (
+              <NextSecretTimer
+                lastTickAt={gameState.last_secret_tick_at}
+                intervalMinutes={gameState.secret_interval_minutes}
+                gameEnded={gameEnded}
+                onDue={refreshGameState}
+              />
+            )}
+          </div>
         )}
 
         {joinCode && <PhotoDownloadButton gameId={gameId} joinCode={joinCode} />}
@@ -96,7 +107,7 @@ export function Board({ gameId }: { gameId: string }) {
             zone={selectedZone}
             challenge={TURF_WAR_CHALLENGES[selectedZone.region.slug]}
             player={player}
-            verificationMode={verificationMode}
+            verificationMode={gameState?.verification_mode ?? 'none'}
             isMySecretZone={mySecretZoneIds.has(selectedZone.id)}
             onClose={() => setSelectedZone(null)}
             onClaimed={(capture) => {
