@@ -213,12 +213,34 @@ export function MapPanel({ gameId, regions, marks, askPoints, editable, onMarksC
       </div>
 
       {editable && (
-        <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
-          {TOOLS.map((t) => (
-            <Pill key={t.id} active={tool === t.id} onClick={() => selectTool(t.id)}>
-              {t.label}
-            </Pill>
-          ))}
+        <div className="flex items-start gap-2">
+          <div className="-mx-1 flex min-w-0 flex-1 gap-1.5 overflow-x-auto px-1 pb-1">
+            {TOOLS.map((t) => (
+              <Pill key={t.id} active={tool === t.id} onClick={() => selectTool(t.id)}>
+                {t.label}
+              </Pill>
+            ))}
+          </div>
+          <div className="flex shrink-0 gap-1.5">
+            <Button
+              variant="secondary"
+              className="px-3 py-1.5 text-xs"
+              disabled={busy || !latestMark}
+              onClick={() => latestMark && run(() => deleteMapMark({ gameId, markId: latestMark.id }))}
+            >
+              Undo
+            </Button>
+            <Button
+              variant="danger"
+              className="px-3 py-1.5 text-xs"
+              disabled={busy || marks.length === 0}
+              onClick={() => {
+                if (confirm("Clear all of your team's markup for this round?")) run(() => clearMapMarks(gameId))
+              }}
+            >
+              Clear all
+            </Button>
+          </div>
         </div>
       )}
 
@@ -338,26 +360,6 @@ export function MapPanel({ gameId, regions, marks, askPoints, editable, onMarksC
           <summary className="flex cursor-pointer items-center justify-between text-xs font-medium tracking-wide text-faint uppercase">
             Team markup ({marks.length})
           </summary>
-          <div className="mt-3 flex gap-2">
-            <Button
-              variant="secondary"
-              className="px-3 py-1.5 text-xs"
-              disabled={busy || !latestMark}
-              onClick={() => latestMark && run(() => deleteMapMark({ gameId, markId: latestMark.id }))}
-            >
-              Undo last
-            </Button>
-            <Button
-              variant="danger"
-              className="px-3 py-1.5 text-xs"
-              disabled={busy}
-              onClick={() => {
-                if (confirm("Clear all of your team's markup for this round?")) run(() => clearMapMarks(gameId))
-              }}
-            >
-              Clear all
-            </Button>
-          </div>
           <ul className="mt-3 space-y-1.5">
             {[...marks].reverse().map((mark) => (
               <li key={mark.id} className="flex items-center justify-between gap-3 text-sm text-ink">
