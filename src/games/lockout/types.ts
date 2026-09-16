@@ -50,8 +50,8 @@ export interface LockoutSettings {
 export const DEFAULT_LOCKOUT_SETTINGS: LockoutSettings = {
   board_size: 5,
   game_mode: 'combo',
-  tie_breaker: 'sudden_death',
-  duration_minutes: 60,
+  tie_breaker: 'first_to_score',
+  duration_minutes: 110,
   veto_period_minutes: 10,
   veto_limit: 1,
 }
