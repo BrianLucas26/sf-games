@@ -106,7 +106,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 18
   {
     prompt:'Find a full ranbow of colored houses',
-    description: 'Find one house for each color of the rainbow (red, orange, yellow, green, blue, indigo, violet).',
+    description: 'Find one house for each color of the rainbow (red, orange, yellow, green, blue, purple). The houses don\'t have to be next to each other. The entire house does not need to be that color, but it must be a primary feature of the house.',
   },
   // 19
   {
@@ -171,7 +171,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 31
   {
     prompt:'Get legally intoxicated',
-    description: 'One team member must get legally intoxicated.',
+    description: 'One team member must get legally intoxicated. Follow this chart: https://angelaolsonlaw.com/wp-content/uploads/2014/01/08_BAC_Chart.pdf',
   },
   // 32
   {
@@ -201,7 +201,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 37
   {
     prompt:'Find a long-standing business',
-    description: 'Find a store that\'s been open for more than 25 years.',
+    description: 'Find a store that\'s been open for more than 30 years.',
   },
   // 38
   {
@@ -251,7 +251,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 47
   {
     prompt:'Paint your nails',
-    description: 'Only one team member required. Only one nail needs to be painted.',
+    description: 'Every team member must have at least one matching nail.',
   },
   // 48
   {
@@ -265,7 +265,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   },
   // 50
   {
-    prompt:'Take a twins photo',
+    prompt:'Recreate your outfit',
     description: 'Recreate a player\'s outfit with articles of clothing you find. Must be real clothes.',
   },
   // 51
@@ -346,7 +346,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 66
   {
     prompt:'Play hide and seek at a national landmark',
-    description: 'Play hide and seek at a landmark in the US National Register of Historic Places. One team member must generate a random number 2-10 and hides somewhere they think it will take that amount of time for the others to find them. You have a 1 minute buffer on each side. Must regenerate the number on each attempt. https://en.wikipedia.org/wiki/List_of_San_Francisco_Designated_Landmarks#Color_markings_%28highest_noted_listing%29',
+    description: 'Play hide and seek at a landmark in the US National Register of Historic Places. One team member must generate a random number 2-5 and hides somewhere they think it will take that amount of time for the others to find them. You have a 1 minute buffer on each side. Must regenerate the number on each attempt. https://en.wikipedia.org/wiki/List_of_San_Francisco_Designated_Landmarks#Color_markings_%28highest_noted_listing%29',
   },
   // 67
   {
@@ -477,5 +477,30 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   {
     prompt:'Go over a bridge',
     description: 'Must actually be a bridge that spans a road or body of water.',
+  },
+  // 93
+  {
+    prompt:'Get a photo of a boat',
+    description: 'Must be a real boat, not a model or toy.',
+  },
+  // 94
+  {
+    prompt:'Find two people wearing the same outfit',
+    description: 'Find two strangers (not in your team) wearing the same outfit.',
+  },
+  // 95
+  {
+    prompt:'Fly a paper airplane 35 feet',
+    description: 'Fly a paper airplane at least 35 feet. You may not practice. If you fail, you must wait 5 minutes between attempts.',
+  },
+  // 96
+  {
+    prompt:'Start a flash mob',
+    description: 'You must get at least one stranger to dance with you for at least 10 seconds.',
+  },
+  // 97
+  {
+    prompt:'Find 5 pink items at IKEA',
+    description: 'Find 5 different pink items at IKEA.',
   }
 ]
