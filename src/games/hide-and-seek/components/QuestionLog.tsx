@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/Button'
 import { TextInput } from '@/components/Field'
-import { formatCost } from '../../../../content/hide-and-seek-questions'
+import { formatCost, HIDE_AND_SEEK_QUESTIONS } from '../../../../content/hide-and-seek-questions'
 import { answerQuestion } from '../api'
 import type { HideAndSeekQuestionRow, HideAndSeekRole } from '../types'
 
@@ -20,6 +20,8 @@ function AnswerForm({ gameId, question, onAnswered }: { gameId: string; question
   const [text, setText] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Display only -- looked up live since the asked row doesn't snapshot it.
+  const minutes = HIDE_AND_SEEK_QUESTIONS.find((q) => q.id === question.question_key)?.minutes
 
   async function submit(answer: string) {
     if (!answer.trim()) return
@@ -59,6 +61,7 @@ function AnswerForm({ gameId, question, onAnswered }: { gameId: string; question
         </form>
       )}
       <p className="text-xs text-faint">
+        {minutes !== undefined && `You have ${minutes} minutes to answer. `}
         Answering earns you a curse draw ({formatCost({ draw: question.draw_count, keep: question.keep_count })}).
       </p>
       {error && <p className="text-xs text-danger">{error}</p>}

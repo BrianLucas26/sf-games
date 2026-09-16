@@ -17,10 +17,16 @@ export function startNextRound(gameId: string) {
   return callFunction<{ round?: HideAndSeekRoundRow }>('hide-and-seek-start-round', { game_id: gameId })
 }
 
-export function askQuestion(params: { gameId: string; questionKey: string; location: [number, number] | null }) {
+export function askQuestion(params: {
+  gameId: string
+  questionKey: string
+  input?: string
+  location: [number, number] | null
+}) {
   return callFunction<{ question: HideAndSeekQuestionRow }>('hide-and-seek-ask-question', {
     game_id: params.gameId,
     question_key: params.questionKey,
+    input: params.input,
     lng: params.location?.[0],
     lat: params.location?.[1],
   })

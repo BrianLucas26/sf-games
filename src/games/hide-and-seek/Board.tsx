@@ -191,7 +191,13 @@ export function Board({ gameId }: { gameId: string }) {
 
         <div className="min-w-0 space-y-4">
           {myRole === 'seeker' && roundActive && (
-            <QuestionBank gameId={gameId} askedKeys={askedKeys} lockedReason={lockedReason} onAsked={refreshQuestions} />
+            <QuestionBank
+              gameId={gameId}
+              gameSize={gameState.game_size}
+              askedKeys={askedKeys}
+              lockedReason={lockedReason}
+              onAsked={refreshQuestions}
+            />
           )}
 
           {myRole === 'hider' && (

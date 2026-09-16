@@ -1,11 +1,14 @@
 import { useMemo, useState } from 'react'
 import { Button } from '@/components/Button'
-import { formatCost, HIDE_AND_SEEK_QUESTIONS, type HideAndSeekQuestion } from '../../../../content/hide-and-seek-questions'
+import { TextInput } from '@/components/Field'
+import { formatCost, questionsForSize, type HideAndSeekQuestion } from '../../../../content/hide-and-seek-questions'
 import { askQuestion } from '../api'
 import { getCurrentLngLat } from '../map/location'
+import type { HideAndSeekGameSize } from '../types'
 
 interface QuestionBankProps {
   gameId: string
+  gameSize: HideAndSeekGameSize
   askedKeys: Set<string>
   // Why asking is locked right now (hiding period, pending answer, curse, ...), or null.
   lockedReason: string | null
@@ -16,29 +19,37 @@ interface QuestionBankProps {
 // convenience for the hiders, not worth stalling the question over.
 const LOCATION_TIMEOUT_MS = 5000
 
-// The seekers' question bank, grouped by category. A question grays out once
-// asked this round. Tapping one expands it; a second explicit tap asks it, so
-// a stray tap on a phone can't burn a question.
-export function QuestionBank({ gameId, askedKeys, lockedReason, onAsked }: QuestionBankProps) {
+// The seekers' question bank for this game's size, grouped by category. A
+// question grays out once asked this round. Tapping one expands it; a second
+// explicit tap asks it, so a stray tap on a phone can't burn a question.
+export function QuestionBank({ gameId, gameSize, askedKeys, lockedReason, onAsked }: QuestionBankProps) {
   const [selectedKey, setSelectedKey] = useState<string | null>(null)
+  const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const available = useMemo(() => questionsForSize(gameSize), [gameSize])
+
   const categories = useMemo(() => {
     const groups = new Map<string, HideAndSeekQuestion[]>()
-    for (const q of HIDE_AND_SEEK_QUESTIONS) {
+    for (const q of available) {
       groups.set(q.category, [...(groups.get(q.category) ?? []), q])
     }
     return [...groups.entries()]
-  }, [])
+  }, [available])
+
+  function select(key: string | null) {
+    setSelectedKey(key)
+    setInput('')
+  }
 
   async function ask(question: HideAndSeekQuestion) {
     setBusy(true)
     setError(null)
     try {
       const location = await getCurrentLngLat(LOCATION_TIMEOUT_MS)
-      await askQuestion({ gameId, questionKey: question.id, location })
-      setSelectedKey(null)
+      await askQuestion({ gameId, questionKey: question.id, input: question.input ? input : undefined, location })
+      select(null)
       await onAsked()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to ask question.')
@@ -47,7 +58,7 @@ export function QuestionBank({ gameId, askedKeys, lockedReason, onAsked }: Quest
     }
   }
 
-  const remaining = HIDE_AND_SEEK_QUESTIONS.filter((q) => !askedKeys.has(q.id)).length
+  const remaining = available.filter((q) => !askedKeys.has(q.id)).length
 
   return (
     <div className="rounded-xl border border-border bg-surface p-4">
@@ -72,7 +83,7 @@ export function QuestionBank({ gameId, askedKeys, lockedReason, onAsked }: Quest
                     <button
                       type="button"
                       disabled={asked}
-                      onClick={() => setSelectedKey(selected ? null : q.id)}
+                      onClick={() => select(selected ? null : q.id)}
                       className={`w-full rounded-lg border px-3 py-2 text-left text-sm transition-colors ${
                         asked
                           ? 'cursor-not-allowed border-border text-faint opacity-50'
@@ -82,14 +93,28 @@ export function QuestionBank({ gameId, askedKeys, lockedReason, onAsked }: Quest
                       }`}
                     >
                       <span className="flex items-start justify-between gap-3">
-                        <span className={asked ? 'line-through' : ''}>{q.prompt}</span>
+                        <span className={asked ? 'line-through' : ''}>{q.prompt.replace('{input}', '___')}</span>
                         <span className="shrink-0 text-xs text-muted">{asked ? 'Asked' : formatCost(q.cost)}</span>
                       </span>
                     </button>
                     {selected && (
                       <div className="mt-1.5 space-y-2 px-1">
                         {q.description && <p className="text-xs text-muted">{q.description}</p>}
-                        <Button className="w-full" disabled={busy || Boolean(lockedReason)} onClick={() => ask(q)}>
+                        <p className="text-xs text-faint">Hiders have {q.minutes} minutes to answer.</p>
+                        {q.input && (
+                          <TextInput
+                            aria-label={q.input.label}
+                            value={input}
+                            maxLength={q.input.maxLength}
+                            placeholder={q.input.placeholder}
+                            onChange={(e) => setInput(e.target.value)}
+                          />
+                        )}
+                        <Button
+                          className="w-full"
+                          disabled={busy || Boolean(lockedReason) || (Boolean(q.input) && !input.trim())}
+                          onClick={() => ask(q)}
+                        >
                           {busy ? 'Asking…' : 'Ask this question'}
                         </Button>
                       </div>

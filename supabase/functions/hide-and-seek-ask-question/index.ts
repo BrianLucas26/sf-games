@@ -11,7 +11,7 @@ import {
   requireRole,
   requireSeekingStarted,
 } from '../_shared/hideAndSeek.ts'
-import { HIDE_AND_SEEK_QUESTIONS } from '../../../content/hide-and-seek-questions.ts'
+import { fillPrompt, HIDE_AND_SEEK_QUESTIONS } from '../../../content/hide-and-seek-questions.ts'
 
 function isCoordinate(value: unknown, limit: number): value is number {
   return typeof value === 'number' && Number.isFinite(value) && Math.abs(value) <= limit
@@ -35,9 +35,10 @@ Deno.serve(async (req) => {
       return json({ error: 'Too many requests -- slow down.' }, 429)
     }
 
-    const { game_id, question_key, lat, lng } = await readBody<{
+    const { game_id, question_key, input, lat, lng } = await readBody<{
       game_id: string
       question_key: string
+      input: string
       lat: number
       lng: number
     }>(req)
@@ -45,9 +46,26 @@ Deno.serve(async (req) => {
 
     const question = HIDE_AND_SEEK_QUESTIONS.find((q) => q.id === question_key)
     if (!question) return json({ error: 'Unknown question.' }, 404)
+    if (question.input) {
+      const value = typeof input === 'string' ? input.trim() : ''
+      if (!value || value.length > question.input.maxLength) {
+        return json({ error: `Enter a ${question.input.label.toLowerCase()} (up to ${question.input.maxLength} characters).` }, 400)
+      }
+    }
 
     const ctx = await loadRoundContext(admin, game_id, user.id)
     requireRole(ctx, 'seeker')
+
+    if (question.sizes) {
+      const { data: state } = await admin
+        .from('hide_and_seek_game_state')
+        .select('game_size')
+        .eq('game_id', game_id)
+        .maybeSingle()
+      if (!state || !question.sizes.includes(state.game_size)) {
+        return json({ error: "That question isn't available at this game size." }, 400)
+      }
+    }
     requireActiveRound(ctx.round)
     requireSeekingStarted(ctx.round)
     if (ctx.round.found_claimed_at) {
@@ -76,7 +94,7 @@ Deno.serve(async (req) => {
         round_id: ctx.round.id,
         question_key: question.id,
         category: question.category,
-        prompt: question.prompt,
+        prompt: fillPrompt(question, input),
         answer_options: question.answers ?? null,
         draw_count: question.cost.draw,
         keep_count: question.cost.keep,
