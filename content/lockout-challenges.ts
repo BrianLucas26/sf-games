@@ -500,7 +500,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   },
   // 97
   {
-    prompt:'Find 5 pink items at IKEA',
-    description: 'Find 5 different pink items at IKEA.',
+    prompt:'Find 5 purple items at IKEA',
+    description: 'Find 5 different purple items at IKEA.',
   }
 ]
