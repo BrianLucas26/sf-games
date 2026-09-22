@@ -51,7 +51,7 @@ export const DEFAULT_LOCKOUT_SETTINGS: LockoutSettings = {
   board_size: 5,
   game_mode: 'combo',
   tie_breaker: 'first_to_score',
-  duration_minutes: 110,
-  veto_period_minutes: 10,
+  duration_minutes: 105,
+  veto_period_minutes: 15,
   veto_limit: 1,
 }
