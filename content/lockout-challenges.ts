@@ -502,5 +502,10 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   {
     prompt:'Find 5 purple items at IKEA',
     description: 'Find 5 different purple items at IKEA.',
+  },
+  // 98
+  {
+    prompt:'Take a photo of the other team',
+    description: 'Take a photo of the other team without them noticing. This must be done during the game, not during the veto period or before. They must not know you took the photo for this to count.',
   }
 ]
