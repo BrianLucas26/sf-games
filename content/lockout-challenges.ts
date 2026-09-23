@@ -507,5 +507,10 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   {
     prompt:'Take a photo of the other team',
     description: 'Take a photo of the other team without them noticing. This must be done during the game, not during the veto period or before. They must not know you took the photo for this to count.',
+  },
+  // 99
+  {
+    prompt:'Eat an onion',
+    description: 'You can split it between team members, but you must eat the onion raw and in its entirety. Must be an actual onion, not scallion or shallot etc.',
   }
 ]
