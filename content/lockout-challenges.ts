@@ -296,7 +296,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 56
   {
     prompt:'Touch grass',
-    description: 'Real grass only.',
+    description: 'Real grass only. Must be at least 1 mile away from city hall.',
   },
   // 57
   {
