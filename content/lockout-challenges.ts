@@ -31,7 +31,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 3
   {
     prompt:'Order at a fast food restaurant',
-    description: 'Order at a fast food restaurant.',
+    description: 'Order at a fast food restaurant (must be a chain).',
   },
   // 4
   {
@@ -40,7 +40,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   },
   // 5
   {
-    prompt:'Get a photo of both bridges',
+    prompt:'Photograph both bridges',
     description: 'Get a photo of both the golden gate and the bay bridge.',
   },
   // 6
@@ -106,7 +106,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 18
   {
     prompt:'Find a full ranbow of colored houses',
-    description: 'Find one house for each color of the rainbow (red, orange, yellow, green, blue, indigo, violet).',
+    description: 'Find one house for each color of the rainbow (red, orange, yellow, green, blue, purple). The houses don\'t have to be next to each other. The entire house does not need to be that color, but it must be a primary feature of the house.',
   },
   // 19
   {
@@ -115,8 +115,8 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   },
   // 20
   {
-    prompt:'Find your initials on a sign',
-    description: 'Find a sign that contains the letters of every team member\'s initials.',
+    prompt:'Find every letter of the alphabet',
+    description: 'Find every letter of the alphabet on public signs.',
   },
   // 21
   {
@@ -146,7 +146,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 26
   {
     prompt:'Do a blind taste test',
-    description: 'Have one team member correctly guess 3 different flavors of gummies while blindfolded.',
+    description: 'Have one team member correctly guess 3 different flavors of gummies while blindfolded. If failed, you must wait 10 minutes between attempts. The gummies must be found, not with you at the start of the game.',
   },
   // 27
   {
@@ -165,13 +165,13 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   },
   // 30
   {
-    prompt:'Recreate a painting',
-    description: 'Recreate a painting at an SF museum using any materials you find.',
+    prompt:'Recreate a famous artwork',
+    description: 'Choose an artwork that is in an SF museum and recreate it using any materials you find. Send a photo of your recreation to ChatGPT (or any AI model) and have it correctly identify the artwork with the prompt "identify what famous SF artwork this is depicting."',
   },
   // 31
   {
     prompt:'Get legally intoxicated',
-    description: 'One team member must get legally intoxicated.',
+    description: 'One team member must get legally intoxicated. Follow this chart: https://angelaolsonlaw.com/wp-content/uploads/2014/01/08_BAC_Chart.pdf',
   },
   // 32
   {
@@ -196,12 +196,12 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 36
   {
     prompt:'Find 3 different languages.',
-    description: 'Find 3 different languages on signs or storefronts within one block.',
+    description: 'Find 3 different languages on signs or storefronts within a single block.',
   },
   // 37
   {
     prompt:'Find a long-standing business',
-    description: 'Find a store that\'s been open for more than 25 years.',
+    description: 'Find a store that\'s been open for more than 30 years.',
   },
   // 38
   {
@@ -216,7 +216,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 40
   {
     prompt:'Replicate a statue',
-    description: 'Replicate a statue or sculpture found in the city.',
+    description: 'Go to a statue or sculpture in the city and replicate it.',
   },
   // 41
   {
@@ -246,12 +246,12 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 46
   {
     prompt:'Solve a puzzle in the daily paper',
-    description: 'Solve a puzzle in the daily paper.',
+    description: 'Solve a puzzle in the daily paper. You must first find a physical copy of the paper, not have it at the start of the game.',
   },
   // 47
   {
     prompt:'Paint your nails',
-    description: 'Only one team member required. Only one nail needs to be painted.',
+    description: 'Every team member must have at least one matching nail. You must find nail polish, not have it at the start of the game.',
   },
   // 48
   {
@@ -265,7 +265,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   },
   // 50
   {
-    prompt:'Take a twins photo',
+    prompt:'Recreate your outfit',
     description: 'Recreate a player\'s outfit with articles of clothing you find. Must be real clothes.',
   },
   // 51
@@ -291,12 +291,12 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 55
   {
     prompt:'Play an instrument',
-    description: 'Learn and play a song on any instrument that\'s not your voice. Must be a non-original song.',
+    description: 'Learn and play a song on any instrument you find. Must be a non-original song.',
   },
   // 56
   {
     prompt:'Touch grass',
-    description: 'Real grass only.',
+    description: 'Real grass only. Must be at least 1 mile away from city hall.',
   },
   // 57
   {
@@ -306,7 +306,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 58
   {
     prompt:'Eat a fortune cookie',
-    description: 'Eat a fortune cookie.',
+    description: 'Find and eat a fortune cookie.',
   },
   // 59
   {
@@ -331,7 +331,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 63
   {
     prompt:'Ring a bell',
-    description: 'Can be any physical bell, but must be audible.',
+    description: 'Find and ring a bell. Can be any physical bell, but must be audible.',
   },
   // 64
   {
@@ -346,7 +346,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 66
   {
     prompt:'Play hide and seek at a national landmark',
-    description: 'Play hide and seek at a landmark in the US National Register of Historic Places. One team member must generate a random number 2-10 and hides somewhere they think it will take that amount of time for the others to find them. You have a 1 minute buffer on each side. Must regenerate the number on each attempt. https://en.wikipedia.org/wiki/List_of_San_Francisco_Designated_Landmarks#Color_markings_%28highest_noted_listing%29',
+    description: 'Play hide and seek at a landmark in the US National Register of Historic Places (light blue in link). One team member must generate a random number 2-5 and hides somewhere they think it will take that amount of time for the others to find them. You have a 1 minute buffer on each side. Must regenerate the number on each attempt. https://en.wikipedia.org/wiki/List_of_San_Francisco_Designated_Landmarks',
   },
   // 67
   {
@@ -386,7 +386,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 74
   {
     prompt:'Guess the number of tapioca pearls in a boba',
-    description: 'Guess how many tapioca pearls are in a boba drink. You must be within 10% of the actual number.',
+    description: 'Order a boba drink and guess how many tapioca pearls are in it. You must be within 10% of the actual number.',
   },
   // 75
   {
@@ -426,7 +426,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 82
   {
     prompt:'Land a bottle flip',
-    description: 'Land a bottle flip. You may not practice. If you fail, you must wait 5 minutes between attempts.',
+    description: 'Land a bottle flip with a bottle you didn\'t have at the start of the game. You may not practice. If you fail, you must wait 5 minutes between attempts.',
   },
   // 83
   {
@@ -441,7 +441,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 85
   {
     prompt:'Use the force at the Yoda fountain',
-    description: 'Knock a fruit off a teammate\'s head from 15 feet away. Must wait 2 minutes between attempts.',
+    description: 'Knock a fruit off a teammate\'s head from 15 feet away. Must wait 2 minutes between attempts. Cannot use a fruit that you had at the start of the game. Must be done at the Yoda fountain.',
   },
   // 86
   {
@@ -477,5 +477,45 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   {
     prompt:'Go over a bridge',
     description: 'Must actually be a bridge that spans a road or body of water.',
+  },
+  // 93
+  {
+    prompt:'Get a photo of a boat',
+    description: 'Must be a real boat, not a model or toy.',
+  },
+  // 94
+  {
+    prompt:'Find two people wearing the same outfit',
+    description: 'Find two strangers (not in your team) wearing the same outfit.',
+  },
+  // 95
+  {
+    prompt:'Fly a paper airplane 35 feet',
+    description: 'Fly a paper airplane at least 35 feet. You may not practice. If you fail, you must wait 5 minutes between attempts.',
+  },
+  // 96
+  {
+    prompt:'Start a flash mob',
+    description: 'You must get at least one stranger to dance with you for at least 10 seconds.',
+  },
+  // 97
+  {
+    prompt:'Find 5 purple items at IKEA',
+    description: 'Find 5 different purple items at IKEA.',
+  },
+  // 98
+  {
+    prompt:'Take a photo of the other team',
+    description: 'Take a photo of the other team without them noticing. This must be done during the game, not during the veto period or before. They must not know you took the photo for this to count.',
+  },
+  // 99
+  {
+    prompt:'Eat an onion',
+    description: 'You can split it between team members, but you must eat the onion raw and in its entirety. Must be an actual onion, not scallion or shallot etc. You must find the onion, not have it at the start of the game.',
+  },
+  // 100
+  {
+    prompt:'Describe an SF Landmark',
+    description: 'Without colluding ahead of time, two teammates must use the same adjective to independently describe a designated SF Landmark (light yellow in link). If you fail, you must go to a different landmark to try again. You may not reuse words. https://en.wikipedia.org/wiki/List_of_San_Francisco_Designated_Landmarks',
   }
 ]
