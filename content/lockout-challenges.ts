@@ -166,7 +166,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 30
   {
     prompt:'Recreate a famous artwork',
-    description: 'Choose an artwork that is in an SF museum and recreate it using any materials you find. Send a photo of your recreation to ChatGPT and have it correctly identify the artwork with the prompt "identify this artwork."',
+    description: 'Choose an artwork that is in an SF museum and recreate it using any materials you find. Send a photo of your recreation to ChatGPT (or any AI model) and have it correctly identify the artwork with the prompt "identify what famous SF artwork this is depicting."',
   },
   // 31
   {
