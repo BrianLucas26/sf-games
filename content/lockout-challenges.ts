@@ -31,7 +31,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 3
   {
     prompt:'Order at a fast food restaurant',
-    description: 'Order at a fast food restaurant.',
+    description: 'Order at a fast food restaurant (must be a chain).',
   },
   // 4
   {
@@ -40,7 +40,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   },
   // 5
   {
-    prompt:'Get a photo of both bridges',
+    prompt:'Photograph both bridges',
     description: 'Get a photo of both the golden gate and the bay bridge.',
   },
   // 6
@@ -146,7 +146,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 26
   {
     prompt:'Do a blind taste test',
-    description: 'Have one team member correctly guess 3 different flavors of gummies while blindfolded.',
+    description: 'Have one team member correctly guess 3 different flavors of gummies while blindfolded. If failed, you must wait 10 minutes between attempts. The gummies must be found, not with you at the start of the game.',
   },
   // 27
   {
@@ -196,7 +196,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 36
   {
     prompt:'Find 3 different languages.',
-    description: 'Find 3 different languages on signs or storefronts within one block.',
+    description: 'Find 3 different languages on signs or storefronts within a single block.',
   },
   // 37
   {
@@ -216,7 +216,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 40
   {
     prompt:'Replicate a statue',
-    description: 'Replicate a statue or sculpture found in the city.',
+    description: 'Go to a statue or sculpture in the city and replicate it.',
   },
   // 41
   {
@@ -246,12 +246,12 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 46
   {
     prompt:'Solve a puzzle in the daily paper',
-    description: 'Solve a puzzle in the daily paper.',
+    description: 'Solve a puzzle in the daily paper. You must first find a physical copy of the paper, not have it at the start of the game.',
   },
   // 47
   {
     prompt:'Paint your nails',
-    description: 'Every team member must have at least one matching nail.',
+    description: 'Every team member must have at least one matching nail. You must find nail polish, not have it at the start of the game.',
   },
   // 48
   {
@@ -291,7 +291,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 55
   {
     prompt:'Play an instrument',
-    description: 'Learn and play a song on any instrument that\'s not your voice. Must be a non-original song.',
+    description: 'Learn and play a song on any instrument you find. Must be a non-original song.',
   },
   // 56
   {
@@ -306,7 +306,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 58
   {
     prompt:'Eat a fortune cookie',
-    description: 'Eat a fortune cookie.',
+    description: 'Find and eat a fortune cookie.',
   },
   // 59
   {
@@ -331,7 +331,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 63
   {
     prompt:'Ring a bell',
-    description: 'Can be any physical bell, but must be audible.',
+    description: 'Find and ring a bell. Can be any physical bell, but must be audible.',
   },
   // 64
   {
@@ -346,7 +346,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 66
   {
     prompt:'Play hide and seek at a national landmark',
-    description: 'Play hide and seek at a landmark in the US National Register of Historic Places. One team member must generate a random number 2-5 and hides somewhere they think it will take that amount of time for the others to find them. You have a 1 minute buffer on each side. Must regenerate the number on each attempt. https://en.wikipedia.org/wiki/List_of_San_Francisco_Designated_Landmarks#Color_markings_%28highest_noted_listing%29',
+    description: 'Play hide and seek at a landmark in the US National Register of Historic Places (light blue in link). One team member must generate a random number 2-5 and hides somewhere they think it will take that amount of time for the others to find them. You have a 1 minute buffer on each side. Must regenerate the number on each attempt. https://en.wikipedia.org/wiki/List_of_San_Francisco_Designated_Landmarks',
   },
   // 67
   {
@@ -386,7 +386,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 74
   {
     prompt:'Guess the number of tapioca pearls in a boba',
-    description: 'Guess how many tapioca pearls are in a boba drink. You must be within 10% of the actual number.',
+    description: 'Order a boba drink and guess how many tapioca pearls are in it. You must be within 10% of the actual number.',
   },
   // 75
   {
@@ -426,7 +426,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 82
   {
     prompt:'Land a bottle flip',
-    description: 'Land a bottle flip. You may not practice. If you fail, you must wait 5 minutes between attempts.',
+    description: 'Land a bottle flip with a bottle you didn\'t have at the start of the game. You may not practice. If you fail, you must wait 5 minutes between attempts.',
   },
   // 83
   {
@@ -441,7 +441,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 85
   {
     prompt:'Use the force at the Yoda fountain',
-    description: 'Knock a fruit off a teammate\'s head from 15 feet away. Must wait 2 minutes between attempts.',
+    description: 'Knock a fruit off a teammate\'s head from 15 feet away. Must wait 2 minutes between attempts. Cannot use a fruit that you had at the start of the game. Must be done at the Yoda fountain.',
   },
   // 86
   {
@@ -511,11 +511,11 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 99
   {
     prompt:'Eat an onion',
-    description: 'You can split it between team members, but you must eat the onion raw and in its entirety. Must be an actual onion, not scallion or shallot etc.',
+    description: 'You can split it between team members, but you must eat the onion raw and in its entirety. Must be an actual onion, not scallion or shallot etc. You must find the onion, not have it at the start of the game.',
   },
   // 100
   {
     prompt:'Describe an SF Landmark',
-    description: 'Without colluding ahead of time, two teammates must use the same adjective to describe a designated SF Landmark. If you fail, you must go to a different landmark to try again. You may not reuse words. https://en.wikipedia.org/wiki/List_of_San_Francisco_Designated_Landmarks',
+    description: 'Without colluding ahead of time, two teammates must use the same adjective to independently describe a designated SF Landmark (light yellow in link). If you fail, you must go to a different landmark to try again. You may not reuse words. https://en.wikipedia.org/wiki/List_of_San_Francisco_Designated_Landmarks',
   }
 ]
