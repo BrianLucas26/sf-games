@@ -115,8 +115,8 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   },
   // 20
   {
-    prompt:'Find your initials on a sign',
-    description: 'Find a sign that contains the letters of every team member\'s initials.',
+    prompt:'Find every letter of the alphabet',
+    description: 'Find every letter of the alphabet on public signs.',
   },
   // 21
   {
@@ -165,8 +165,8 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   },
   // 30
   {
-    prompt:'Recreate a painting',
-    description: 'Recreate a painting at an SF museum using any materials you find.',
+    prompt:'Recreate a famous artwork',
+    description: 'Choose an artwork that is in an SF museum and recreate it using any materials you find. Send a photo of your recreation to ChatGPT and have it correctly identify the artwork with the prompt \"identify this artwork.\"',
   },
   // 31
   {
@@ -512,5 +512,10 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   {
     prompt:'Eat an onion',
     description: 'You can split it between team members, but you must eat the onion raw and in its entirety. Must be an actual onion, not scallion or shallot etc.',
+  },
+  // 100
+  {
+    prompt:'Describe an SF Landmark',
+    description: 'Without colluding ahead of time, two teammates must use the same adjective to describe a designated SF Landmark. If you fail, you must go to a different landmark to try again. You may not reuse words. https://en.wikipedia.org/wiki/List_of_San_Francisco_Designated_Landmarks',
   }
 ]
