@@ -51,7 +51,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 7
   {
     prompt:'Skip a rock 3 times',
-    description: 'Skip a rock at least 3 times in a single throw.',
+    description: 'Skip a rock at least 3 times in a single throw. You must find the rock.',
   },
   // 8
   {
@@ -121,7 +121,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 21
   {
     prompt:'Get something edible for free',
-    description: 'Get a free food item from a public place (Do not steal).',
+    description: 'Get a free food item from a public place (do not steal).',
   },
   // 22
   {
@@ -146,7 +146,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 26
   {
     prompt:'Do a blind taste test',
-    description: 'Have one team member correctly guess 3 different flavors of gummies while blindfolded. If failed, you must wait 10 minutes between attempts. The gummies must be found, not with you at the start of the game.',
+    description: 'Have one team member correctly guess 3 different flavors of gummies while blindfolded. If failed, you must wait 10 minutes between attempts. You must find the gummies.',
   },
   // 27
   {
@@ -161,7 +161,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 29
   {
     prompt:'Build a raft',
-    description: 'Construct a raft of at least 3 different materials and make it float for at least 10 seconds.',
+    description: 'Construct a raft of at least 3 different materials and make it float for at least 10 seconds. You must find all materials.',
   },
   // 30
   {
@@ -271,7 +271,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 51
   {
     prompt:'Bowl a strike',
-    description: 'Bowl a strike using anything as your ball and anything as your pins. Must have 10 pins.',
+    description: 'Bowl a strike using anything as your ball and anything as your pins. Must have 10 pins. You must find all items needed.',
   },
   // 52
   {
@@ -446,7 +446,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 86
   {
     prompt:'Create a rival museum',
-    description: 'Create a collection of at least 3 items/exhibits and set them it up in a 5x5ft square outside of a real museum. Without prompting them or interacting with them, you must get 5 strangers to "visit" your museum for at least 10 seconds.',
+    description: 'Create a collection of at least 3 items/exhibits and set them up in a 5x5ft square outside of a real museum. Without prompting them or interacting with them, you must get 5 strangers to "visit" your museum for at least 10 seconds.',
   },
   // 87
   {
@@ -461,7 +461,7 @@ export const LOCKOUT_CHALLENGES: LockoutChallenge[] = [
   // 89
   {
     prompt:'Roll an object 100 feet',
-    description: 'Roll any object at least 100 feet in a single throw.',
+    description: 'Roll any object at least 100 feet in a single throw. You must find the object.',
   },
   // 90
   {
