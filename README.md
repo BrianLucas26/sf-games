@@ -1,5 +1,7 @@
 # sf-games
 
+[![Play at sfgamers.com](https://img.shields.io/badge/play-sfgamers.com-blue)](https://sfgamers.com/)
+
 City-wide transit/scavenger-style games around San Francisco (turf war, hide & seek, scavenger hunt, lockout, and more to come) — think [Jet Lag: The Game](https://www.youtube.com/@JetLagTheGame), but browser-based lobbies instead of a film crew.
 
 Players pick a game, create or join a lobby with a code/invite link, and play. Each game works differently under the hood, but they all share one lobby/team/routing framework so adding a new game later doesn't mean rebuilding the site.
