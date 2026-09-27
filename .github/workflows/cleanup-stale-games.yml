@@ -4,7 +4,9 @@ name: Clean up stale games
 # abandoned lobbies, finished games (after players have had a chance to
 # download their photos), and any stuck active game, along with their
 # Storage photos. Requires a CLEANUP_SECRET repository secret matching the
-# one set on the Supabase project (`npx supabase secrets set CLEANUP_SECRET=...`).
+# one set on the Supabase project (`npx supabase secrets set CLEANUP_SECRET=...`),
+# plus a SUPABASE_PUBLISHABLE_KEY repository secret (same value as
+# VITE_SUPABASE_PUBLISHABLE_KEY in .env.local).
 # This is the primary cleanup path; supabase/migrations/0015_cleanup_games_edge.sql
 # schedules a much-less-frequent pg_cron fallback in case this stops running.
 on:
@@ -19,8 +21,8 @@ jobs:
       - name: Call cleanup-games edge function
         run: |
           curl -sf -X POST "https://hhectckjwozmulhnrwdt.supabase.co/functions/v1/cleanup-games" \
-            -H "apikey: sb_publishable_YY2Gn6vEX_NyvS2gIYPcYQ_mf6A32Cy" \
-            -H "Authorization: Bearer sb_publishable_YY2Gn6vEX_NyvS2gIYPcYQ_mf6A32Cy" \
+            -H "apikey: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}" \
             -H "X-Cleanup-Secret: ${{ secrets.CLEANUP_SECRET }}" \
             -H "Content-Type: application/json" \
             -d '{}'
