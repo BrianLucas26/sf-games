@@ -16,7 +16,7 @@ export default function Layout() {
           </Link>
           <nav className="flex items-center gap-4 text-sm text-muted">
             <a
-              href="https://github.com/"
+              href="https://github.com/BrianLucas26/sf-games"
               target="_blank"
               rel="noreferrer"
               className="transition-colors hover:text-ink"
